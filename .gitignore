@@ -1,0 +1,59 @@
+# Mac
+.DS_Store
+**/.DS_Store
+
+# IDE
+.config/
+.idea/
+.cursor/
+
+# external
+external/
+prebuilt/
+
+# build
+build/
+build-*/
+build_*/
+cmake-build-*/
+*-darwin
+*-Darwin
+
+# msc
+.clang-tidy
+.cache/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.pdb
+*.out
+*.app
+*.-Darwin
