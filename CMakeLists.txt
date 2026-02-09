@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.28.0)
 project(Simulacrum VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/prebuilt)
