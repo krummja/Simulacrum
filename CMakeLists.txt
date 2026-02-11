@@ -51,6 +51,9 @@ setup_project_dependencies()
 
 set(SOURCES
         src/main.cpp
+        src/engine/core/game_app.cpp
+        src/engine/core/config.cpp
+        src/engine/input/input_manager.cpp
 )
 
 if(WIN32)
@@ -67,6 +70,8 @@ add_executable(${TARGET} ${SOURCES})
 # Link all dependent libraries
 target_link_libraries(${TARGET}
         SDL3::SDL3
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog
 )
 
 # ==============================================
@@ -80,8 +85,7 @@ setup_compiler_options(${TARGET})
 setup_asset_copy(${TARGET})
 
 # Configure Windows DLL replication (defined in BuildHelpers.cmake)
-# TODO
-# setup_windows_dll_copy(${TARGET})
+setup_windows_dll_copy(${TARGET})
 
 # ==============================================
 # Emscripten specific configuration

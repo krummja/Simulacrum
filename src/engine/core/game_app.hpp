@@ -10,7 +10,12 @@ namespace engine::render {
 class Renderer;
 class Camera;
 class TextRenderer;
-} // namespace engine::render
+}
+
+namespace engine::input {
+class InputManager;
+}
+
 
 namespace engine::core {
 class Time;
@@ -27,6 +32,9 @@ private:
     SDL_Window* window_ = nullptr;
     SDL_Renderer* sdl_renderer_ = nullptr;
     bool is_running_ = false;
+
+    std::unique_ptr<engine::core::Config> config_;
+    std::unique_ptr<engine::input::InputManager> input_manager_;
 
 public:
     GameApp();
