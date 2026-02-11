@@ -1,4 +1,6 @@
-#pragma once
+#ifndef INPUT_MANAGER_HPP_
+#define INPUT_MANAGER_HPP_
+
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -12,30 +14,30 @@ namespace engine::core {
 
 namespace engine::input {
 
-enum class ActionState {
-    INACTIVE,
-    PRESSED_THIS_FRAME,
-    HELD_DOWN,
-    RELEASED_THIS_FRAME,
-};
+    enum class ActionState {
+        INACTIVE,
+        PRESSED_THIS_FRAME,
+        HELD_DOWN,
+        RELEASED_THIS_FRAME,
+    };
 
-class InputManager {
+    class InputManager {
+    public:
+        InputManager(const engine::core::Config* config);
 
-private:
-    std::unordered_map<std::string, std::vector<std::string>> actions_to_keyname_map_;
-    std::unordered_map<std::variant<SDL_Scancode, Uint32>, std::vector<std::string>> input_to_actions_map_;
-    std::unordered_map<std::string, ActionState> action_states_;
-    bool should_quit_ = false;
+        void update();
+        bool shouldQuit() const;
 
-public:
-    InputManager(const engine::core::Config* config);
+    private:
+        std::unordered_map<std::string, std::vector<std::string>> actions_to_keyname_map_;
+        std::unordered_map<std::variant<SDL_Scancode, Uint32>, std::vector<std::string>> input_to_actions_map_;
+        std::unordered_map<std::string, ActionState> action_states_;
 
-    void update();
-    bool shouldQuit() const;
-
-private:
-    void processEvent(const SDL_Event& event);
-    SDL_Scancode scancodeFromString(std::string_view key_name);
-};
+        bool should_quit_ = false;
+        void processEvent(const SDL_Event& event);
+        SDL_Scancode scancodeFromString(std::string_view key_name);
+    };
 
 } // namespace engine::input
+
+#endif // INPUT_MANAGER_HPP_

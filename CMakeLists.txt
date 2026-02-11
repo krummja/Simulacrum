@@ -53,6 +53,7 @@ set(SOURCES
         src/main.cpp
         src/engine/core/game_app.cpp
         src/engine/core/config.cpp
+        src/engine/core/context.cpp
         src/engine/input/input_manager.cpp
 )
 

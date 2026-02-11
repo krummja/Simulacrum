@@ -4,6 +4,7 @@ function(print_project_info TARGET_NAME)
     message(STATUS "Project configuration complete!")
     message(STATUS " Target Name:  ${TARGET_NAME}")
     message(STATUS " C++ Standard: ${CMAKE_CXX_STANDARD}")
+    message(STATUS " CMake Source: ${CMAKE_SOURCE_DIR}")
 
     if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
         message(STATUS "  Executable output: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
