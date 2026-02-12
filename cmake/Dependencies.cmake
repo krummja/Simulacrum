@@ -94,7 +94,7 @@ macro(find_or_fetch_dependency
         set(BUILD_DOCS OFF CACHE BOOL "" FORCE)
 
         # SDL_image specific option: Disable format support that may cause build issues
-        if(condition)
+        if("${DEP_NAME}" STREQUAL "SDL3_image")
             # Disable AVIF format (requires complex toolchains such as NASM and Meson)
             set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
             set(SDLIMAGE_AVIF_SHARED OFF CACHE BOOL "" FORCE)
@@ -201,6 +201,35 @@ function(setup_project_dependencies)
         "release-3.2.24"
         "external/SDL-release-3.2.24"
         AUTO  # Use global BUILD_SHARED_LIBS settings
+    )
+
+    # SDL3_image
+    find_or_fetch_dependency(
+        SDL3_image
+        SDL3_image
+        "https://github.com/libsdl-org/SDL_image.git"
+        "release-3.2.4"
+        "external/SDL_image-release-3.2.4"
+        AUTO
+    )
+
+    # SDL3_mixer
+    find_or_fetch_dependency(
+        SDL3_mixer
+        SDL3_mixer
+        "https://github.com/libsdl-org/SDL_mixer.git"
+        "30c1301055a35ee87b8679279b6fc88e10d28fa3"
+        "external/SDL_mixer-30c1301"
+        AUTO
+    )
+
+    find_or_fetch_dependency(
+        glm
+        glm
+        "https://github.com/g-truc/glm.git"
+        "1.0.1"
+        "external/glm-1.0.1"
+        STATIC
     )
 
     # nlohmann-json (header-only library)

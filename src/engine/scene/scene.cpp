@@ -1,11 +1,11 @@
 #include "scene.hpp"
 #include "scene_manager.hpp"
-// #include "../object/game_object.hpp"
+#include "../object/game_object.hpp"
 #include "../core/context.hpp"
 // #include "../core/game_state.hpp"
 // #include "../physics/physics_engine.hpp"
 // #include "../render/camera.hpp"
-// #include "../ui/ui_manager.hpp"
+#include "../ui/ui_manager.hpp"
 #include <algorithm>  // for std::remove_if
 #include <spdlog/spdlog.h>
 

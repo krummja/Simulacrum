@@ -50,9 +50,9 @@ namespace engine::core {
     bool GameApp::init() {
         spdlog::trace("Starting up application...");
 
-        if (!scene_setup_func_) {
-            return false;
-        }
+        // if (!scene_setup_func_) {
+        //     return false;
+        // }
 
         spdlog::trace("Initializing engine modules...");
 
@@ -73,7 +73,7 @@ namespace engine::core {
         if (!initContext()) return false;
         if (!initSceneManager()) return false;
 
-        scene_setup_func_(*scene_manager_);
+        // scene_setup_func_(*scene_manager_);
 
         is_running_ = true;
         spdlog::trace("Application startup complete!");

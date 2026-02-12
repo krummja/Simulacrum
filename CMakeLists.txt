@@ -57,6 +57,8 @@ set(SOURCES
         src/engine/input/input_manager.cpp
         src/engine/scene/scene_manager.cpp
         src/engine/scene/scene.cpp
+        src/engine/object/game_object.cpp
+        src/engine/ui/ui_manager.cpp
 )
 
 if(WIN32)
@@ -73,6 +75,9 @@ add_executable(${TARGET} ${SOURCES})
 # Link all dependent libraries
 target_link_libraries(${TARGET}
         SDL3::SDL3
+        SDL3_image::SDL3_image
+        SDL3_mixer::SDL3_mixer
+        glm::glm
         nlohmann_json::nlohmann_json
         spdlog::spdlog
 )

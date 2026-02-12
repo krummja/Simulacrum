@@ -8,27 +8,27 @@
 struct SDL_Window;
 struct SDL_Renderer;
 
-namespace engine::render {
-    class Renderer;
-    class Camera;
-    class TextRenderer;
-}
+// namespace engine::render {
+//     class Renderer;
+//     class Camera;
+//     class TextRenderer;
+// }
 
 namespace engine::input {
     class InputManager;
 }
 
-namespace engine::physics {
-    class PhysicsEngine;
-}
+// namespace engine::physics {
+//     class PhysicsEngine;
+// }
 
 namespace engine::scene {
     class SceneManager;
 }
 
-namespace engine::audio {
-    class AudioPlayer;
-}
+// namespace engine::audio {
+//     class AudioPlayer;
+// }
 
 namespace engine::core {
     class Time;
