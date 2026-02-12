@@ -1,4 +1,5 @@
 #include "game_app.hpp"
+#include "time.hpp"
 #include "config.hpp"
 #include "context.hpp"
 #include "../input/input_manager.hpp"
@@ -32,15 +33,15 @@ namespace engine::core {
     }
 
     void GameApp::oneIter() {
-
         if (!is_running_) return;
 
+        time_->update();
+        float delta_time = time_->getDeltaTime();
         input_manager_->update();
 
         handleEvents();
-        // update(delta_time);
+        update(delta_time);
         render();
-
     }
 
     void GameApp::registerSceneSetup(std::function<void(engine::scene::SceneManager&)> func) {
@@ -153,6 +154,16 @@ namespace engine::core {
     }
 
     bool GameApp::initTime() {
+        try {
+            time_ = std::make_unique<Time>();
+        }
+
+        catch (const std::exception& exc) {
+            spdlog::error("Time management initialization failed: {}", exc.what());
+            return false;
+        }
+
+        time_->setTargetFps(config_->target_fps_);
         spdlog::trace("  Time initialization successful.");
         return true;
     }
