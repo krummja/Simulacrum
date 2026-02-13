@@ -8,27 +8,27 @@
 struct SDL_Window;
 struct SDL_Renderer;
 
-// namespace engine::render {
-//     class Renderer;
-//     class Camera;
-//     class TextRenderer;
-// }
+namespace engine::render {
+    class Renderer;
+    class Camera;
+    class TextRenderer;
+}
 
 namespace engine::input {
     class InputManager;
 }
 
-// namespace engine::physics {
-//     class PhysicsEngine;
-// }
+namespace engine::physics {
+    class PhysicsEngine;
+}
 
 namespace engine::scene {
     class SceneManager;
 }
 
-// namespace engine::audio {
-//     class AudioPlayer;
-// }
+namespace engine::audio {
+    class AudioPlayer;
+}
 
 namespace engine::core {
     class Time;
@@ -64,6 +64,7 @@ namespace engine::core {
         std::unique_ptr<engine::input::InputManager> input_manager_;
         std::unique_ptr<engine::core::Context> context_;
         std::unique_ptr<engine::scene::SceneManager> scene_manager_;
+        std::unique_ptr<engine::core::GameState> game_state_;
 
         void handleEvents();
         void update(float delta_time);

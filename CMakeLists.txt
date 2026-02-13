@@ -51,14 +51,25 @@ setup_project_dependencies()
 
 set(SOURCES
         src/main.cpp
+
+        # Engine Core
         src/engine/core/game_app.cpp
+        src/engine/core/time.cpp
         src/engine/core/config.cpp
         src/engine/core/context.cpp
-        src/engine/core/time.cpp
+        src/engine/core/game_state.cpp
+
+        # Input
         src/engine/input/input_manager.cpp
+
+        # Scenes
         src/engine/scene/scene_manager.cpp
         src/engine/scene/scene.cpp
+
+        # Game Objects
         src/engine/object/game_object.cpp
+
+        # UI
         src/engine/ui/ui_manager.cpp
 )
 

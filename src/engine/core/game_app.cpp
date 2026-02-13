@@ -1,7 +1,8 @@
 #include "game_app.hpp"
 #include "time.hpp"
-#include "config.hpp"
 #include "context.hpp"
+#include "config.hpp"
+#include "game_state.hpp"
 #include "../input/input_manager.hpp"
 #include "../scene/scene_manager.hpp"
 #include <SDL3/SDL.h>
@@ -210,6 +211,15 @@ namespace engine::core {
     }
 
     bool GameApp::initGameState() {
+        try {
+            game_state_ = std::make_unique<engine::core::GameState>(window_, sdl_renderer_);
+        }
+
+        catch (const std::exception& exc) {
+            spdlog::error("GameState initialization failed: {}", exc.what());
+            return false;
+        }
+
         spdlog::trace("  GameState initialization successful.");
         return true;
     }
@@ -217,7 +227,8 @@ namespace engine::core {
     bool GameApp::initContext() {
         try {
             context_ = std::make_unique<engine::core::Context>(
-                *input_manager_
+                *input_manager_,
+                *game_state_
             );
         }
 
