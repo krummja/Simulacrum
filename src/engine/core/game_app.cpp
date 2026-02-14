@@ -3,6 +3,7 @@
 #include "context.hpp"
 #include "config.hpp"
 #include "game_state.hpp"
+#include "../resource/resource_manager.hpp"
 #include "../input/input_manager.hpp"
 #include "../scene/scene_manager.hpp"
 #include <SDL3/SDL.h>
@@ -170,6 +171,15 @@ namespace engine::core {
     }
 
     bool GameApp::initResourceManager() {
+        try {
+            resource_manager_ = std::make_unique<engine::resource::ResourceManager>(sdl_renderer_);
+        }
+
+        catch (const std::exception& exc) {
+            spdlog::error("Resource management initialization failed: {}", exc.what());
+            return false;
+        }
+
         spdlog::trace("  ResourceManager initialization successful.");
         return true;
     }
@@ -228,6 +238,7 @@ namespace engine::core {
         try {
             context_ = std::make_unique<engine::core::Context>(
                 *input_manager_,
+                *resource_manager_,
                 *game_state_
             );
         }

@@ -8,6 +8,10 @@
 struct SDL_Window;
 struct SDL_Renderer;
 
+namespace engine::resource {
+    class ResourceManager;
+}
+
 namespace engine::render {
     class Renderer;
     class Camera;
@@ -60,6 +64,7 @@ namespace engine::core {
         std::function<void(engine::scene::SceneManager&)> scene_setup_func_;
 
         std::unique_ptr<engine::core::Time> time_;
+        std::unique_ptr<engine::resource::ResourceManager> resource_manager_;
         std::unique_ptr<engine::core::Config> config_;
         std::unique_ptr<engine::input::InputManager> input_manager_;
         std::unique_ptr<engine::core::Context> context_;

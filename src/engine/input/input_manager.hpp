@@ -23,12 +23,17 @@ namespace engine::input {
 
     class InputManager {
     public:
-        InputManager(const engine::core::Config* config);
+        InputManager(
+            // SDL_Renderer* sdl_renderer,
+            const engine::core::Config* config
+        );
 
         void update();
         bool shouldQuit() const;
 
     private:
+        SDL_Renderer* sdl_renderer_;
+
         std::unordered_map<std::string, std::vector<std::string>> actions_to_keyname_map_;
         std::unordered_map<std::variant<SDL_Scancode, Uint32>, std::vector<std::string>> input_to_actions_map_;
         std::unordered_map<std::string, ActionState> action_states_;

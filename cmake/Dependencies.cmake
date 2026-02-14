@@ -223,6 +223,17 @@ function(setup_project_dependencies)
         AUTO
     )
 
+    # SDL3_ttf
+    find_or_fetch_dependency(
+        SDL3_ttf
+        SDL3_ttf
+        "https://github.com/libsdl-org/SDL_ttf.git"
+        "release-3.2.2"
+        "external/SDL_ttf-release-3.2.2"
+        AUTO
+    )
+
+    # GLM
     find_or_fetch_dependency(
         glm
         glm

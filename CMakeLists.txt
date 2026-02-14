@@ -59,6 +59,12 @@ set(SOURCES
         src/engine/core/context.cpp
         src/engine/core/game_state.cpp
 
+        # Resources
+        src/engine/resource/resource_manager.cpp
+        src/engine/resource/texture_manager.cpp
+        src/engine/resource/audio_manager.cpp
+        src/engine/resource/font_manager.cpp
+
         # Input
         src/engine/input/input_manager.cpp
 
@@ -89,6 +95,7 @@ target_link_libraries(${TARGET}
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_mixer::SDL3_mixer
+        SDL3_ttf::SDL3_ttf
         glm::glm
         nlohmann_json::nlohmann_json
         spdlog::spdlog
