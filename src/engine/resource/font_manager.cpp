@@ -2,7 +2,18 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
+#include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+namespace fs = std::filesystem;
+
+
 namespace engine::resource {
+
+    inline bool fileExists(const fs::path& p, fs::file_status s = fs::file_status{}) {
+        return fs::status_known(s) ? fs::exists(s) : fs::exists(p);
+    }
 
     FontManager::FontManager() {
         if (!TTF_WasInit() && !TTF_Init()) {
@@ -32,7 +43,8 @@ namespace engine::resource {
             return it->second.get();
         }
 
-        spdlog::debug("Loaded font: {} ({}pt).", file_path, point_size);
+        spdlog::debug("Loading font: {} ({}pt).", file_path, point_size);
+
         TTF_Font* raw_font = TTF_OpenFont(file_path.data(), point_size);
         if (!raw_font) {
             spdlog::error("Loading font '{}' ({}pt) failed: {}.", file_path, point_size, SDL_GetError());

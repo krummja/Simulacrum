@@ -5,6 +5,7 @@
 #include "game_state.hpp"
 #include "../resource/resource_manager.hpp"
 #include "../render/renderer.hpp"
+#include "../render/text_renderer.hpp"
 #include "../input/input_manager.hpp"
 #include "../scene/scene_manager.hpp"
 #include <SDL3/SDL.h>
@@ -228,8 +229,16 @@ namespace engine::core {
     }
 
     bool GameApp::initTextRenderer() {
-        // spdlog::trace("  TextRenderer initialization successful.");
-        spdlog::warn("TextRenderer not yet implemented!");
+        try {
+            text_renderer_ = std::make_unique<engine::render::TextRenderer>(sdl_renderer_, resource_manager_.get());
+        }
+
+        catch (const std::exception& exc) {
+            spdlog::error("Text renderer initialization failed: {}", exc.what());
+            return false;
+        }
+
+        spdlog::trace("  TextRenderer initialization successful.");
         return true;
     }
 
@@ -278,6 +287,7 @@ namespace engine::core {
             context_ = std::make_unique<engine::core::Context>(
                 *input_manager_,
                 *renderer_,
+                *text_renderer_,
                 *resource_manager_,
                 *game_state_
             );

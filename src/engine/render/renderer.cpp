@@ -37,14 +37,37 @@ namespace engine::render {
         const glm::vec2& scale,
         double angle
     ) {
-        // auto texture = resource_manager_->getTexture(sprite.getTextureId());
-        // if (!texture) {
-        //     return;
-        // }
+        auto texture = resource_manager_->getTexture(sprite.getTextureId());
+        if (!texture) {
+            return;
+        }
+
+        auto src_rect = getSpriteSrcRect(sprite);
+        if (!src_rect.has_value()) {
+            return;
+        }
+
+        // glm::vec2 position_screen = camera.worldToScreen(position);
     }
 
-    void Renderer::drawParallax() {}
-    void Renderer::drawUISprite() {}
+    void Renderer::drawParallax(
+        const Camera& camera,
+        const Sprite& sprite,
+        const glm::vec2& position,
+        const glm::vec2& scroll_factor,
+        glm::bvec2 repeat,
+        const glm::vec2& scale
+    ) {
+
+    }
+
+    void Renderer::drawUISprite(
+        const Sprite& sprite,
+        const glm::vec2& position,
+        const std::optional<glm::vec2>& size
+    ) {
+
+    }
 
     void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
         if (!SDL_SetRenderDrawColor(renderer_, r, g, b, a)) {

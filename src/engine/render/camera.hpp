@@ -4,9 +4,12 @@
 namespace engine::render {
 
     class Camera final {
+    public:
+
+    private:
 
     };
 
-}
+} // namespace engine::render
 
 #endif // CAMERA_HPP_

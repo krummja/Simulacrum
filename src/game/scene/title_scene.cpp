@@ -7,6 +7,7 @@
 #include "../../engine/input/input_manager.hpp"
 #include "../../engine/ui/ui_manager.hpp"
 #include "../../engine/ui/ui_panel.hpp"
+#include "../../engine/ui/ui_label.hpp"
 #include <spdlog/spdlog.h>
 
 namespace game::scene {
@@ -53,7 +54,18 @@ namespace game::scene {
             glm::vec2(panel_width, panel_height)
         );
 
-        test_panel->setBackgroundColor(engine::utils::FColor{1.0, 0.0, 0.0, 1.0});
+        test_panel->setBackgroundColor(engine::utils::FColor{0.0, 0.0, 0.0, 1.0});
+
+        auto test_label = std::make_unique<engine::ui::UILabel>(
+            context_.getTextRenderer(),
+            "Hello, world!",
+            "assets/fonts/VonwaonBitmap-16px.ttf",
+            16,
+            engine::utils::FColor{0.8f, 0.8f, 0.8f, 1.0f}
+        );
+
+        test_panel->addChild(std::move(test_label));
+
         ui_manager_->addElement(std::move(test_panel));
     }
 

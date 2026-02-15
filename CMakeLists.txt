@@ -68,6 +68,7 @@ set(SOURCES
 
         # Engine Renderer
         src/engine/render/renderer.cpp
+        src/engine/render/text_renderer.cpp
 
         # Engine Input
         src/engine/input/input_manager.cpp
@@ -83,6 +84,7 @@ set(SOURCES
         src/engine/ui/ui_manager.cpp
         src/engine/ui/ui_element.cpp
         src/engine/ui/ui_panel.cpp
+        src/engine/ui/ui_label.cpp
 
         # GAME ---------------------------------
         # Game Scenes
