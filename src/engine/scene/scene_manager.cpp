@@ -20,6 +20,7 @@ namespace engine::scene {
     }
 
     void SceneManager::update(float delta_time) {
+        // Update logic only for the top of the scene stack
         Scene* current_scene = getCurrentScene();
         if (current_scene) {
             current_scene->update(delta_time);
@@ -29,6 +30,7 @@ namespace engine::scene {
     }
 
     void SceneManager::render() {
+        // Render all scenes in the scene stack, not just the topmost scene
         for (const auto& scene : scene_stack_) {
             if (scene) {
                 scene->render();

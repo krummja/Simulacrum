@@ -22,7 +22,11 @@ namespace engine::scene {
 
     class Scene {
     public:
-        Scene(std::string_view name, engine::core::Context& context, engine::scene::SceneManager& scene_manager);
+        Scene(
+            std::string_view name,
+            engine::core::Context& context,
+            engine::scene::SceneManager& scene_manager
+        );
 
         /**
          * 1. The base class must declare a virtual destructor for the derived class

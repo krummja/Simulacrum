@@ -25,15 +25,70 @@ namespace engine::scene {
 
     Scene::~Scene() = default;
 
-    void Scene::init() {}
+    void Scene::init() {
+        is_initialized_ = true;
+        spdlog::trace("Scene '{}' initialization complete.", scene_name_);
+    }
 
-    void Scene::update(float delta_time) {}
+    void Scene::update(float delta_time) {
+        if (!is_initialized_) {
+            return;
+        }
 
-    void Scene::render() {}
+        bool need_remove = false;
+        for (auto& obj : game_objects_) {
+            if (!obj) {
+                need_remove = true;
+                continue;
+            }
 
-    void Scene::handleInput() {}
+            // TODO GameObject
+        }
 
-    void Scene::clean() {}
+        ui_manager_->update(delta_time, context_);
+
+        processPendingAdditions();
+    }
+
+    void Scene::render() {
+        if (!is_initialized_) {
+            return;
+        }
+
+        for (const auto& obj : game_objects_) {
+            // TODO GameObject
+        }
+
+        ui_manager_->render(context_);
+    }
+
+    void Scene::handleInput() {
+        if (!is_initialized_) {
+            return;
+        }
+
+        if (ui_manager_->handleInput(context_)) {
+            return;
+        }
+
+        for (auto& obj : game_objects_) {
+            // TODO GameObject
+        }
+    }
+
+    void Scene::clean() {
+        if (!is_initialized_) {
+            return;
+        }
+
+        for (const auto& obj : game_objects_) {
+            // TODO GameObject
+        }
+
+        game_objects_.clear();
+
+        is_initialized_ = false;
+    }
 
     void Scene::addGameObject(std::unique_ptr<engine::object::GameObject>&& game_object) {}
 

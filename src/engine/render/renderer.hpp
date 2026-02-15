@@ -1,9 +1,11 @@
 #ifndef RENDERER_HPP_
 #define RENDERER_HPP_
+
 #include "sprite.hpp"
+#include "../utils/math.hpp"
 #include <string>
 #include <optional>
-#include <SDL_stdinc.h>
+#include <SDL3/SDL_stdinc.h>
 
 struct SDL_Renderer;
 struct SDL_FRect;
@@ -35,10 +37,16 @@ namespace engine::render {
         Renderer(Renderer&&) = delete;
         Renderer& operator=(Renderer&&) = delete;
 
-        void drawSprite();
+        void drawSprite(
+            const Camera& camera,
+            const Sprite& sprite,
+            const glm::vec2& position,
+            const glm::vec2& scale,
+            double angle
+        );
         void drawParallax();
         void drawUISprite();
-        void drawUIFilledRect();
+        void drawUIFilledRect(const engine::utils::Rect& rect, const engine::utils::FColor& color);
 
         void present();
         void clearScreen();

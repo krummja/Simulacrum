@@ -30,6 +30,7 @@ namespace engine::core {
     public:
         Context(
             engine::input::InputManager& input_manager,
+            engine::render::Renderer& renderer,
             engine::resource::ResourceManager& resource_manager,
             engine::core::GameState& game_state
         );
@@ -40,11 +41,13 @@ namespace engine::core {
         Context& operator=(Context&&) = delete;
 
         engine::input::InputManager& getInputManager() const { return input_manager_; }
+        engine::render::Renderer& getRenderer() const { return renderer_; }
         engine::resource::ResourceManager& getResourceManager() const { return resource_manager_; }
         engine::core::GameState& getGameState() const { return game_state_; }
 
     private:
         engine::input::InputManager& input_manager_;
+        engine::render::Renderer& renderer_;
         engine::resource::ResourceManager& resource_manager_;
         engine::core::GameState& game_state_;
     };

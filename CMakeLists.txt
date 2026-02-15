@@ -52,6 +52,7 @@ setup_project_dependencies()
 set(SOURCES
         src/main.cpp
 
+        # ENGINE -------------------------------
         # Engine Core
         src/engine/core/game_app.cpp
         src/engine/core/time.cpp
@@ -59,24 +60,33 @@ set(SOURCES
         src/engine/core/context.cpp
         src/engine/core/game_state.cpp
 
-        # Resources
+        # Engine Resources
         src/engine/resource/resource_manager.cpp
         src/engine/resource/texture_manager.cpp
         src/engine/resource/audio_manager.cpp
         src/engine/resource/font_manager.cpp
 
-        # Input
+        # Engine Renderer
+        src/engine/render/renderer.cpp
+
+        # Engine Input
         src/engine/input/input_manager.cpp
 
-        # Scenes
+        # Engine Scene Management
         src/engine/scene/scene_manager.cpp
         src/engine/scene/scene.cpp
 
-        # Game Objects
+        # Engine Game Object
         src/engine/object/game_object.cpp
 
-        # UI
+        # Engine UI
         src/engine/ui/ui_manager.cpp
+        src/engine/ui/ui_element.cpp
+        src/engine/ui/ui_panel.cpp
+
+        # GAME ---------------------------------
+        # Game Scenes
+        src/game/scene/title_scene.cpp
 )
 
 if(WIN32)
