@@ -67,24 +67,31 @@ set(SOURCES
         src/engine/resource/font_manager.cpp
 
         # Engine Renderer
+        src/engine/render/camera.cpp
         src/engine/render/renderer.cpp
         src/engine/render/text_renderer.cpp
 
         # Engine Input
         src/engine/input/input_manager.cpp
 
+        # Engine Object
+        src/engine/object/game_object.cpp
+        src/engine/object/components/transform_component.cpp
+
         # Engine Scene Management
         src/engine/scene/scene_manager.cpp
         src/engine/scene/scene.cpp
 
-        # Engine Game Object
-        src/engine/object/game_object.cpp
-
         # Engine UI
         src/engine/ui/ui_manager.cpp
         src/engine/ui/ui_element.cpp
+        src/engine/ui/ui_interactive.cpp
         src/engine/ui/ui_panel.cpp
         src/engine/ui/ui_label.cpp
+        src/engine/ui/ui_button.cpp
+        src/engine/ui/state/ui_normal_state.cpp
+        src/engine/ui/state/ui_pressed_state.cpp
+        src/engine/ui/state/ui_hover_state.cpp
 
         # GAME ---------------------------------
         # Game Scenes

@@ -66,7 +66,38 @@ namespace engine::render {
         const glm::vec2& position,
         const std::optional<glm::vec2>& size
     ) {
+        auto texture = resource_manager_->getTexture(sprite.getTextureId());
+        if (!texture) {
+            spdlog::error("Could not load sprite texture, ID: {}", sprite.getTextureId());
+            return;
+        }
 
+        auto src_rect = getSpriteSrcRect(sprite);
+        if (!src_rect.has_value()) {
+            spdlog::error("Unable to get source rectangle of sprite, ID: {}", sprite.getTextureId());
+            return;
+        }
+
+        SDL_FRect dest_rect = {position.x, position.y, 0, 0};
+        if (size.has_value()) {
+            dest_rect.w = size.value().x;
+            dest_rect.h = size.value().y;
+        } else {
+            dest_rect.w = src_rect.value().w;
+            dest_rect.h = src_rect.value().h;
+        }
+
+        if (!SDL_RenderTextureRotated(
+            renderer_,
+            texture,
+            &src_rect.value(),
+            &dest_rect,
+            0.0,
+            nullptr,
+            sprite.isFlipped() ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE
+        )) {
+            spdlog::error("Could not render UI Sprite (ID: {}): {}", sprite.getTextureId(), SDL_GetError());
+        }
     }
 
     void Renderer::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
@@ -100,6 +131,29 @@ namespace engine::render {
     }
 
     std::optional<SDL_FRect> Renderer::getSpriteSrcRect(const Sprite &sprite) {
+        SDL_Texture* texture = resource_manager_->getTexture(sprite.getTextureId());
+        if (!texture) {
+            return std::nullopt;
+        }
+
+        auto src_rect = sprite.getSourceRect();
+
+        if (src_rect.has_value()) {
+            if (src_rect.value().w <= 0 || src_rect.value().h <= 0) {
+                return std::nullopt;
+            }
+            return src_rect;
+        }
+
+        else {
+            SDL_FRect result = {0, 0, 0, 0};
+            if (!SDL_GetTextureSize(texture, &result.w, &result.h)) {
+                return std::nullopt;
+            }
+
+            return result;
+        }
+
         return std::nullopt;
     }
 

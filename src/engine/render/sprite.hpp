@@ -22,13 +22,33 @@ namespace engine::render {
             , is_flipped_(is_flipped)
         {}
 
-        std::string_view getTextureId() const { return texture_id_; }
-        const std::optional<SDL_FRect>& getSourceRect() const { return source_rect_; }
-        bool isFlipped() const { return is_flipped_; }
+        // --- GETTERS ---
 
-        void setTextureId(std::string_view texture_id) { texture_id_ = std::string(texture_id); }
-        void setSourceRect(std::optional<SDL_FRect> source_rect) { source_rect_ = std::move(source_rect); }
-        void setFlipped(bool flipped) { is_flipped_ = flipped; }
+        std::string_view getTextureId() const {
+            return texture_id_;
+        }
+
+        const std::optional<SDL_FRect>& getSourceRect() const {
+            return source_rect_;
+        }
+
+        bool isFlipped() const {
+            return is_flipped_;
+        }
+
+        // --- SETTERS ---
+
+        void setTextureId(std::string_view texture_id) {
+            texture_id_ = std::string(texture_id);
+        }
+
+        void setSourceRect(std::optional<SDL_FRect> source_rect) {
+            source_rect_ = std::move(source_rect);
+        }
+
+        void setFlipped(bool flipped) {
+            is_flipped_ = flipped;
+        }
 
     private:
         std::string texture_id_;

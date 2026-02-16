@@ -8,6 +8,7 @@
 #include "../../engine/ui/ui_manager.hpp"
 #include "../../engine/ui/ui_panel.hpp"
 #include "../../engine/ui/ui_label.hpp"
+#include "../../engine/ui/ui_button.hpp"
 #include <spdlog/spdlog.h>
 
 namespace game::scene {
@@ -56,17 +57,38 @@ namespace game::scene {
 
         test_panel->setBackgroundColor(engine::utils::FColor{0.0, 0.0, 0.0, 1.0});
 
-        auto test_label = std::make_unique<engine::ui::UILabel>(
-            context_.getTextRenderer(),
-            "Hello, world!",
-            "assets/fonts/VonwaonBitmap-16px.ttf",
-            16,
-            engine::utils::FColor{0.8f, 0.8f, 0.8f, 1.0f}
+        glm::vec2 current_button_pos = glm::vec2(0.0f, 0.0f);
+        glm::vec2 button_size = glm::vec2(button_width, button_height);
+
+        auto start_button = std::make_unique<engine::ui::UIButton>(
+            context_,
+            "assets/textures/ui/Start1.png",
+            "assets/textures/ui/Start2.png",
+            "assets/textures/ui/Start3.png",
+            current_button_pos,
+            button_size,
+            [this]() { this->onStartGameClick(); }
         );
 
-        test_panel->addChild(std::move(test_label));
+        test_panel->addChild(std::move(start_button));
+
+        spdlog::debug("Added start button and test panel");
+
+        // auto test_label = std::make_unique<engine::ui::UILabel>(
+        //     context_.getTextRenderer(),
+        //     "Hello, world!",
+        //     "assets/fonts/VonwaonBitmap-16px.ttf",
+        //     16,
+        //     engine::utils::FColor{0.8f, 0.8f, 0.8f, 1.0f}
+        // );
+
+        // test_panel->addChild(std::move(test_label));
 
         ui_manager_->addElement(std::move(test_panel));
+    }
+
+    void TitleScene::onStartGameClick() {
+        spdlog::debug("Start clicked!");
     }
 
 } // namespace game::scene

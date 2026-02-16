@@ -1,6 +1,8 @@
 #ifndef UI_STATE_HPP_
 #define UI_STATE_HPP_
 
+#include <memory>
+
 namespace engine::core {
     class Context;
 }
@@ -25,7 +27,7 @@ namespace engine::ui::state {
 
     protected:
         engine::ui::UIInteractive* owner_ = nullptr;
-        virtual void enter();
+        virtual void enter() {}
         virtual std::unique_ptr<UIState> handleInput(engine::core::Context& context) = 0;
 
     };

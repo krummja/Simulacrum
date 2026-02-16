@@ -6,6 +6,7 @@
 #include "../resource/resource_manager.hpp"
 #include "../render/renderer.hpp"
 #include "../render/text_renderer.hpp"
+#include "../render/camera.hpp"
 #include "../input/input_manager.hpp"
 #include "../scene/scene_manager.hpp"
 #include <SDL3/SDL.h>
@@ -243,14 +244,27 @@ namespace engine::core {
     }
 
     bool GameApp::initCamera() {
-        // spdlog::trace("  Camera initialization successful.");
-        spdlog::warn("Camera not yet implemented!");
+        try {
+            camera_ = std::make_unique<engine::render::Camera>(
+                glm::vec2(config_->window_width_ / 2, config_->window_height_ / 2)
+            );
+        }
+
+        catch (const std::exception& exc) {
+            spdlog::error("Camera initialization failed: {}", exc.what());
+            return false;
+        }
+
+        spdlog::trace("  Camera initialization successful.");
         return true;
     }
 
     bool GameApp::initInputManager() {
         try {
-            input_manager_ = std::make_unique<engine::input::InputManager>(config_.get());
+            input_manager_ = std::make_unique<engine::input::InputManager>(
+                sdl_renderer_,
+                config_.get()
+            );
         }
 
         catch (const std::exception& exc) {

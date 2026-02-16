@@ -35,6 +35,8 @@ namespace game::scene {
     private:
         void createUI();
 
+        void onStartGameClick();
+
     };
 
 } // namespace game::scene
