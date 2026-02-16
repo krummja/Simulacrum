@@ -7,6 +7,7 @@
 // Forward declaration to reduce header file dependencies and increase compilation speed
 struct SDL_Window;
 struct SDL_Renderer;
+struct SDL_GPUDevice;
 
 namespace engine::resource {
     class ResourceManager;
@@ -16,6 +17,7 @@ namespace engine::render {
     class Renderer;
     class Camera;
     class TextRenderer;
+    class GPURenderer;
 }
 
 namespace engine::input {
@@ -59,6 +61,7 @@ namespace engine::core {
     private:
         SDL_Window* window_ = nullptr;
         SDL_Renderer* sdl_renderer_ = nullptr;
+        SDL_GPUDevice* gpu_device_ = nullptr;
         bool is_running_ = false;
 
         std::function<void(engine::scene::SceneManager&)> scene_setup_func_;
@@ -68,6 +71,8 @@ namespace engine::core {
         std::unique_ptr<engine::render::Renderer> renderer_;
         std::unique_ptr<engine::render::Camera> camera_;
         std::unique_ptr<engine::render::TextRenderer> text_renderer_;
+        std::unique_ptr<engine::render::GPURenderer> gpu_renderer_;
+
         std::unique_ptr<engine::core::Config> config_;
         std::unique_ptr<engine::input::InputManager> input_manager_;
         std::unique_ptr<engine::core::Context> context_;
@@ -85,6 +90,7 @@ namespace engine::core {
         [[nodiscard]] bool init();
         [[nodiscard]] bool initConfig();
         [[nodiscard]] bool initSDL();
+        [[nodiscard]] bool initGPURenderer();
         [[nodiscard]] bool initTime();
         [[nodiscard]] bool initResourceManager();
         [[nodiscard]] bool initAudioPlayer();

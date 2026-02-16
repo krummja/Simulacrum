@@ -10,7 +10,9 @@ namespace engine::ui {
         glm::vec2 position,
         glm::vec2 size,
         std::optional<engine::utils::FColor> background_color
-    ) : UIElement(std::move(position), std::move(size)), background_color_(std::move(background_color))
+    )
+        : UIElement(std::move(position), std::move(size))
+        , background_color_(std::move(background_color))
     {}
 
     void UIPanel::render(engine::core::Context& context) {

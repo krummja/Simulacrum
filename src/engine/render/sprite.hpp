@@ -59,5 +59,4 @@ namespace engine::render {
 
 } // namespace engine::render
 
-
 #endif // SPRITE_HPP_

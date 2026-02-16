@@ -58,7 +58,7 @@ namespace engine::render {
         glm::bvec2 repeat,
         const glm::vec2& scale
     ) {
-
+        spdlog::warn("drawParallax is not implemented!");
     }
 
     void Renderer::drawUISprite(
@@ -79,10 +79,13 @@ namespace engine::render {
         }
 
         SDL_FRect dest_rect = {position.x, position.y, 0, 0};
+
         if (size.has_value()) {
             dest_rect.w = size.value().x;
             dest_rect.h = size.value().y;
-        } else {
+        }
+
+        else {
             dest_rect.w = src_rect.value().w;
             dest_rect.h = src_rect.value().h;
         }
@@ -158,7 +161,9 @@ namespace engine::render {
     }
 
     bool Renderer::isRectInViewport(const Camera& camera, const SDL_FRect &rect) {
-        return true;
+        glm::vec2 viewport_size = camera.getViewportSize();
+        return rect.x + rect.w >= 0 && rect.x <= viewport_size.x &&
+               rect.x + rect.h >= 0 && rect.y <= viewport_size.y;
     }
 
 } // namespace engine::render

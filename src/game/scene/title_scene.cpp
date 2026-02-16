@@ -22,9 +22,7 @@ namespace game::scene {
         if (is_initialized_) {
             return;
         }
-
         createUI();
-
         Scene::init();
     }
 
@@ -33,11 +31,15 @@ namespace game::scene {
     }
 
     void TitleScene::createUI() {
+        // Get the window size so we can anchor the UI to the window boundaries
         auto window_size = context_.getGameState().getLogicalSize();
-
         if (!ui_manager_->init(window_size)) {
             return;
         }
+
+        // ================================================
+        // Button Panel
+        // ================================================
 
         float button_width = 96.0f;
         float button_height = 32.0f;
@@ -50,16 +52,18 @@ namespace game::scene {
         float panel_x = (window_size.x - panel_width) / 2.0f;
         float panel_y = window_size.y * 0.65f;
 
-        auto test_panel = std::make_unique<engine::ui::UIPanel>(
+        // Button Panel UIPanel
+        auto button_panel = std::make_unique<engine::ui::UIPanel>(
             glm::vec2(panel_x, panel_y),
             glm::vec2(panel_width, panel_height)
         );
 
-        test_panel->setBackgroundColor(engine::utils::FColor{0.0, 0.0, 0.0, 1.0});
+        button_panel->setBackgroundColor(engine::utils::FColor{0.0, 0.0, 0.0, 1.0});
 
         glm::vec2 current_button_pos = glm::vec2(0.0f, 0.0f);
         glm::vec2 button_size = glm::vec2(button_width, button_height);
 
+        // Button Panel > Start Button
         auto start_button = std::make_unique<engine::ui::UIButton>(
             context_,
             "assets/textures/ui/Start1.png",
@@ -70,21 +74,12 @@ namespace game::scene {
             [this]() { this->onStartGameClick(); }
         );
 
-        test_panel->addChild(std::move(start_button));
+        // ================================================
+        // Build UI Hierarchy
+        // ================================================
 
-        spdlog::debug("Added start button and test panel");
-
-        // auto test_label = std::make_unique<engine::ui::UILabel>(
-        //     context_.getTextRenderer(),
-        //     "Hello, world!",
-        //     "assets/fonts/VonwaonBitmap-16px.ttf",
-        //     16,
-        //     engine::utils::FColor{0.8f, 0.8f, 0.8f, 1.0f}
-        // );
-
-        // test_panel->addChild(std::move(test_label));
-
-        ui_manager_->addElement(std::move(test_panel));
+        button_panel->addChild(std::move(start_button));
+        ui_manager_->addElement(std::move(button_panel));
     }
 
     void TitleScene::onStartGameClick() {
