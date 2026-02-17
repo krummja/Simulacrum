@@ -104,14 +104,16 @@ namespace engine::core {
 
     void GameApp::render() {
 
+        gpu_renderer_->render();
+
         // 1. Clear screen
-        renderer_->clearScreen();
+        // renderer_->clearScreen();
 
         // 2. Render active scene
-        scene_manager_->render();
+        // scene_manager_->render();
 
         // 3. Update screen display
-        renderer_->present();
+        // renderer_->present();
     }
 
     void GameApp::close() {
@@ -181,21 +183,21 @@ namespace engine::core {
         SDL_ClaimWindowForGPUDevice(gpu_device_, window_);
 
         // Set renderer to support transparent colors
-        SDL_SetRenderDrawBlendMode(sdl_renderer_, SDL_BLENDMODE_BLEND);
+        // SDL_SetRenderDrawBlendMode(sdl_renderer_, SDL_BLENDMODE_BLEND);
 
         // Setting VSync (Note: When VSync is on, the driver will try to limit the frame
         // rate to the monitor refresh rate, which may overwrite the target_fps we set
         // manually)
-        int vsync_mode = config_->vsync_enabled_ ? SDL_RENDERER_VSYNC_ADAPTIVE : SDL_RENDERER_VSYNC_DISABLED;
-        SDL_SetRenderVSync(sdl_renderer_, vsync_mode);
+        // int vsync_mode = config_->vsync_enabled_ ? SDL_RENDERER_VSYNC_ADAPTIVE : SDL_RENDERER_VSYNC_DISABLED;
+        // SDL_SetRenderVSync(sdl_renderer_, vsync_mode);
 
         // Set the logical resolution to half the window size (for pixel games)
-        SDL_SetRenderLogicalPresentation(
-            sdl_renderer_,
-            config_->window_width_,
-            config_->window_height_,
-            SDL_LOGICAL_PRESENTATION_LETTERBOX
-        );
+        // SDL_SetRenderLogicalPresentation(
+        //     sdl_renderer_,
+        //     config_->window_width_,
+        //     config_->window_height_,
+        //     SDL_LOGICAL_PRESENTATION_LETTERBOX
+        // );
 
         spdlog::trace("  SDL initialization successful.");
         return true;
@@ -203,7 +205,10 @@ namespace engine::core {
 
     bool GameApp::initGPURenderer() {
         try {
-            gpu_renderer_ = std::make_unique<engine::render::GPURenderer>(gpu_device_);
+            gpu_renderer_ = std::make_unique<engine::render::GPURenderer>(
+                gpu_device_,
+                window_
+            );
         }
 
         catch (const std::exception& exc) {
