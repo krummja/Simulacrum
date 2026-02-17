@@ -174,30 +174,17 @@ namespace engine::core {
             return false;
         }
 
-        gpu_device_ = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, false, NULL);
+        gpu_device_ = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);
         if (gpu_device_ == nullptr) {
             spdlog::error("No GPU Device available to bind to window.");
             return false;
         }
 
+        spdlog::debug("    Claiming window for GPU device");
         SDL_ClaimWindowForGPUDevice(gpu_device_, window_);
 
-        // Set renderer to support transparent colors
-        // SDL_SetRenderDrawBlendMode(sdl_renderer_, SDL_BLENDMODE_BLEND);
-
-        // Setting VSync (Note: When VSync is on, the driver will try to limit the frame
-        // rate to the monitor refresh rate, which may overwrite the target_fps we set
-        // manually)
-        // int vsync_mode = config_->vsync_enabled_ ? SDL_RENDERER_VSYNC_ADAPTIVE : SDL_RENDERER_VSYNC_DISABLED;
-        // SDL_SetRenderVSync(sdl_renderer_, vsync_mode);
-
-        // Set the logical resolution to half the window size (for pixel games)
-        // SDL_SetRenderLogicalPresentation(
-        //     sdl_renderer_,
-        //     config_->window_width_,
-        //     config_->window_height_,
-        //     SDL_LOGICAL_PRESENTATION_LETTERBOX
-        // );
+        spdlog::debug("    Starting GPU Renderer...");
+        gpu_renderer_->init();
 
         spdlog::trace("  SDL initialization successful.");
         return true;

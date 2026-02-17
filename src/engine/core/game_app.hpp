@@ -62,6 +62,7 @@ namespace engine::core {
         SDL_Window* window_ = nullptr;
         SDL_Renderer* sdl_renderer_ = nullptr;
         SDL_GPUDevice* gpu_device_ = nullptr;
+
         bool is_running_ = false;
 
         std::function<void(engine::scene::SceneManager&)> scene_setup_func_;
