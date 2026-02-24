@@ -9,6 +9,8 @@ struct SDL_GPUBuffer;
 struct SDL_GPUTransferBuffer;
 struct SDL_GPUGraphicsPipeline;
 struct SDL_GPUCommandBuffer;
+struct SDL_GPUColorTargetInfo;
+struct SDL_GPUTexture;
 struct SDL_Window;
 
 namespace engine::render {
@@ -50,6 +52,12 @@ namespace engine::render {
 
         SDL_GPUShader* initVertexShader();
         SDL_GPUShader* initFragmentShader();
-    };
+        SDL_GPUColorTargetInfo createColorTarget(SDL_GPUTexture* swapchain_texture);
 
-}
+        void initGraphicsPipeline();
+        void initVertexBuffer();
+        void initTransferBuffer();
+        void fillTransferBuffer();
+        void executeCopyPass();
+    };
+} // namespace engine::render
