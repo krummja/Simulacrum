@@ -6,12 +6,13 @@
 
 namespace engine::render {
 
-    static Vertex vertices[]
-    {
+    static Vertex vertices[] {
         {0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},     // top vertex
         {-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},   // bottom left vertex
         {0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f}     // bottom right vertex
     };
+
+    static UniformBuffer timeUniform{};
 
     GPURenderer::GPURenderer(
         SDL_GPUDevice* device,
@@ -126,16 +127,23 @@ namespace engine::render {
         SDL_SubmitGPUCommandBuffer(commandBuffer);
     }
 
+    void GPURenderer::close() {
+        // Release buffers
+        SDL_ReleaseGPUBuffer(device_, vertex_buffer_);
+        SDL_ReleaseGPUTransferBuffer(device_, transfer_buffer_);
+
+        // Release pipeline
+        SDL_ReleaseGPUGraphicsPipeline(device_, graphics_pipeline_);
+    }
+
     SDL_GPUShader* GPURenderer::initVertexShader() {
         size_t vertexCodeSize;
 
-        spdlog::debug("    Loading vertex.spv");
         void* vertexCode = SDL_LoadFile("assets/shaders/vertex.spv", &vertexCodeSize);
 
         SDL_GPUShaderCreateInfo vertexInfo{};
         vertexInfo.code = (Uint8*)vertexCode;
         vertexInfo.code_size = vertexCodeSize;
-        spdlog::debug("    [vertexInfo.code_size: {}]", vertexInfo.code_size);
 
         vertexInfo.entrypoint = "main";
         vertexInfo.format = SDL_GPU_SHADERFORMAT_SPIRV;
@@ -145,10 +153,7 @@ namespace engine::render {
         vertexInfo.num_storage_textures = 0;
         vertexInfo.num_uniform_buffers = 0;
 
-        spdlog::debug("    Configuring vertex shader");
-
         SDL_GPUShader* vertexShader = SDL_CreateGPUShader(device_, &vertexInfo);
-        spdlog::debug("    Vertex shader configuration successful");
 
         SDL_free(vertexCode);
         return vertexShader;
@@ -176,40 +181,43 @@ namespace engine::render {
     }
 
     void GPURenderer::render() {
-        // Acquire the command buffer
-        SDL_GPUCommandBuffer* buffer = SDL_AcquireGPUCommandBuffer(device_);
+        SDL_GPUCommandBuffer* commandBuffer = SDL_AcquireGPUCommandBuffer(device_);
+        SDL_GPUTexture* swapchainTexture;
+        Uint32 width;
+        Uint32 height;
 
-        // Get the swapchain texture
-        SDL_GPUTexture* texture;
-        Uint32 width, height;
-        SDL_WaitAndAcquireGPUSwapchainTexture(buffer, window_, &texture, &width, &height);
+        SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, window_, &swapchainTexture, &width, &height);
 
-        // End the frame early if a swapchain texture is not available
-        if (texture == NULL) {
-            // You must ALWAYS submit the command buffer
-            SDL_SubmitGPUCommandBuffer(buffer);
+        // End the frame early if a swapchain texture is unavailable
+        if (swapchainTexture == NULL) {
+            // ALWAYS submit the command buffer
+            SDL_SubmitGPUCommandBuffer(commandBuffer);
             return;
         }
 
         // Create the color target
-        SDL_GPUColorTargetInfo targetInfo{};
-        targetInfo.clear_color = {255/255.0f, 0/255.0f, 255/255.0f, 255/255.0f};
-        targetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-        targetInfo.store_op = SDL_GPU_STOREOP_STORE;
-        targetInfo.texture = texture;
+        SDL_GPUColorTargetInfo colorTargetInfo{};
+        colorTargetInfo.clear_color = {240/255.0f, 240/255.0f, 240/255.0f, 255/255.0f};
+        colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+        colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
+        colorTargetInfo.texture = swapchainTexture;
 
         // Begin a render pass
-        SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(buffer, &targetInfo, 1, NULL);
+        SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(commandBuffer, &colorTargetInfo, 1, NULL);
 
-        // Draw calls
-        // Bind the graphics pipeline
+        // Bind the pipeline
         SDL_BindGPUGraphicsPipeline(renderPass, graphics_pipeline_);
 
+        // Bind the vertex buffer
         SDL_GPUBufferBinding bufferBindings[1];
         bufferBindings[0].buffer = vertex_buffer_;
         bufferBindings[0].offset = 0;
 
         SDL_BindGPUVertexBuffers(renderPass, 0, bufferBindings, 1);
+
+        // Update the time uniform
+        timeUniform.time = SDL_GetTicksNS() / 1e9f;
+        SDL_PushGPUFragmentUniformData(commandBuffer, 0, &timeUniform, sizeof(UniformBuffer));
 
         // Issue a draw call
         SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
@@ -218,7 +226,6 @@ namespace engine::render {
         SDL_EndGPURenderPass(renderPass);
 
         // Submit the command buffer
-        SDL_SubmitGPUCommandBuffer(buffer);
+        SDL_SubmitGPUCommandBuffer(commandBuffer);
     }
-
-} // namespace engine::render
+}

@@ -1,5 +1,5 @@
-#ifndef TIME_HPP_
-#define TIME_HPP_
+#pragma once
+
 #include <SDL3/SDL_stdinc.h>
 
 
@@ -72,5 +72,3 @@ namespace engine::core {
     };
 
 } // namespace engine::core
-
-#endif // TIME_HPP_

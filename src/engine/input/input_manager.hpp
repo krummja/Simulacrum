@@ -1,5 +1,4 @@
-#ifndef INPUT_MANAGER_HPP_
-#define INPUT_MANAGER_HPP_
+#pragma once
 
 #include <string>
 #include <string_view>
@@ -24,10 +23,7 @@ namespace engine::input {
 
     class InputManager {
     public:
-        InputManager(
-            SDL_Renderer* sdl_renderer,
-            const engine::core::Config* config
-        );
+        InputManager(const engine::core::Config* config);
 
         void update();
         bool shouldQuit() const;
@@ -39,10 +35,8 @@ namespace engine::input {
         void setShouldQuit(bool should_quit);
 
         glm::vec2 getMousePosition() const;
-        glm::vec2 getLogicalMousePosition() const;
 
     private:
-        SDL_Renderer* sdl_renderer_;
         bool should_quit_ = false;
         glm::vec2 mouse_position_;
 
@@ -59,5 +53,3 @@ namespace engine::input {
     };
 
 } // namespace engine::input
-
-#endif // INPUT_MANAGER_HPP_

@@ -13,9 +13,13 @@
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-msvc-x64",
             "includePath": [
-                "${default}",
-                "${workspaceFolder}/build/_deps/**"
-            ]
+                "c:/Users/crumj/Workspace/Simulacrum/**"
+            ],
+            "mergeConfigurations": false,
+            "recursiveIncludes": {},
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            }
         }
     ],
     "version": 4

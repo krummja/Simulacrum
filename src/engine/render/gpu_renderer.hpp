@@ -1,5 +1,4 @@
-#ifndef GPU_RENDERER_HPP_
-#define GPU_RENDERER_HPP_
+#pragma once
 
 #include <string>
 #include <optional>
@@ -12,14 +11,6 @@ struct SDL_GPUGraphicsPipeline;
 struct SDL_GPUCommandBuffer;
 struct SDL_Window;
 
-namespace engine::core {
-    class Context;
-}
-
-namespace engine::resource {
-    class ResourceManager;
-}
-
 namespace engine::render {
 
     struct Vertex {
@@ -27,12 +18,19 @@ namespace engine::render {
         float r, g, b, a;
     };
 
+    struct UniformBuffer {
+        float time;
+    };
+
     class GPURenderer final {
     public:
         GPURenderer(SDL_GPUDevice* device, SDL_Window* window);
 
+        // Copy operations
         GPURenderer(const GPURenderer&) = delete;
         GPURenderer& operator=(const GPURenderer&) = delete;
+
+        // Move operations
         GPURenderer(GPURenderer&&) = delete;
         GPURenderer& operator=(GPURenderer&&) = delete;
 
@@ -40,6 +38,7 @@ namespace engine::render {
 
         void init();
         void render();
+        void close();
 
     private:
         SDL_GPUDevice* device_ = nullptr;
@@ -51,9 +50,6 @@ namespace engine::render {
 
         SDL_GPUShader* initVertexShader();
         SDL_GPUShader* initFragmentShader();
-
     };
 
-} // namespace engine::render
-
-#endif // GPU_RENDERER_HPP_
+}

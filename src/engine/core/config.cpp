@@ -11,7 +11,6 @@ namespace engine::core {
     }
 
     bool Config::loadFromFile(std::string_view filepath) {
-
         // Convert string_view to to file path (or std::string)
         auto path = std::filesystem::path(filepath);
         // ifstream does not support std::string_view construction

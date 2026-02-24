@@ -1,5 +1,4 @@
-#ifndef CONFIG_HPP_
-#define CONFIG_HPP_
+#pragma once
 
 #include <string>
 #include <string_view>
@@ -61,5 +60,3 @@ namespace engine::core {
     };
 
 } // namespace engine::core
-
-#endif // CONFIG_HPP_

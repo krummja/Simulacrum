@@ -7,16 +7,7 @@
 
 namespace engine::input {
 
-    InputManager::InputManager(
-        SDL_Renderer* sdl_renderer,
-        const engine::core::Config* config
-    )
-        : sdl_renderer_(sdl_renderer)
-    {
-        if (!sdl_renderer_) {
-            spdlog::error("InputManager: SDL_Renderer is null pointer.");
-            throw std::runtime_error("InputManager: SDL_Renderer is null pointer.");
-        }
+    InputManager::InputManager(const engine::core::Config* config) {
         initializeMappings(config);
 
         float x, y;
@@ -120,18 +111,6 @@ namespace engine::input {
 
     glm::vec2 InputManager::getMousePosition() const {
         return mouse_position_;
-    }
-
-    glm::vec2 InputManager::getLogicalMousePosition() const {
-        glm::vec2 logical_pos;
-        SDL_RenderCoordinatesFromWindow(
-            sdl_renderer_,
-            mouse_position_.x,
-            mouse_position_.y,
-            &logical_pos.x,
-            &logical_pos.y
-        );
-        return logical_pos;
     }
 
     void InputManager::initializeMappings(const engine::core::Config* config) {
