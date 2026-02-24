@@ -35,6 +35,9 @@ namespace engine::render {
     }
 
     void GPURenderer::init() {
+        draw_queue_ = std::make_unique<DrawQueue>();
+        draw_queue_->init();
+
         // Create the graphics pipeline
         initGraphicsPipeline();
 
@@ -49,6 +52,10 @@ namespace engine::render {
 
         // Do the copy pass to move from CPU to GPU
         executeCopyPass();
+    }
+
+    void GPURenderer::submit(MeshGPU* mesh) {
+        draw_queue_->addMesh(mesh);
     }
 
     void GPURenderer::render() {

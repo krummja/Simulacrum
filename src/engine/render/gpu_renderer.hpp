@@ -1,17 +1,9 @@
 #pragma once
 
+#include "draw_queue.hpp"
 #include <string>
 #include <optional>
-
-struct SDL_GPUDevice;
-struct SDL_GPUShader;
-struct SDL_GPUBuffer;
-struct SDL_GPUTransferBuffer;
-struct SDL_GPUGraphicsPipeline;
-struct SDL_GPUCommandBuffer;
-struct SDL_GPUColorTargetInfo;
-struct SDL_GPUTexture;
-struct SDL_Window;
+#include <SDL3/SDL_gpu.h>
 
 namespace engine::render {
 
@@ -41,8 +33,11 @@ namespace engine::render {
         void init();
         void render();
         void close();
+        void submit(MeshGPU* mesh);
 
     private:
+        std::unique_ptr<DrawQueue> draw_queue_ = nullptr;
+
         SDL_GPUDevice* device_ = nullptr;
         SDL_Window* window_ = nullptr;
         SDL_GPUBuffer* vertex_buffer_ = nullptr;

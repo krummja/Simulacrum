@@ -2,6 +2,9 @@
     "configurations": [
         {
             "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
@@ -11,15 +14,7 @@
             "compilerPath": "cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64",
-            "includePath": [
-                "c:/Users/crumj/Workspace/Simulacrum/**"
-            ],
-            "mergeConfigurations": false,
-            "recursiveIncludes": {},
-            "browse": {
-                "limitSymbolsToIncludedHeaders": true
-            }
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4
