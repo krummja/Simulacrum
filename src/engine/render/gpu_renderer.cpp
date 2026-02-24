@@ -186,7 +186,13 @@ namespace engine::render {
         Uint32 width;
         Uint32 height;
 
-        SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, window_, &swapchainTexture, &width, &height);
+        SDL_WaitAndAcquireGPUSwapchainTexture(
+            commandBuffer,
+            window_,
+            &swapchainTexture,
+            &width,
+            &height
+        );
 
         // End the frame early if a swapchain texture is unavailable
         if (swapchainTexture == NULL) {
