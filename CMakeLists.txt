@@ -51,12 +51,12 @@ setup_project_dependencies()
 
 set(SOURCES
         src/main.cpp
-        src/engine/core/window.cpp
-        src/engine/core/application.cpp
-        src/engine/core/config.cpp
-        src/engine/core/time.cpp
-        src/engine/render/gpu_renderer.cpp
-        src/engine/input/input_manager.cpp
+        # src/engine/core/window.cpp
+        # src/engine/core/application.cpp
+        # src/engine/core/config.cpp
+        # src/engine/core/time.cpp
+        # src/engine/render/gpu_renderer.cpp
+        # src/engine/input/input_manager.cpp
 )
 
 if(WIN32)
