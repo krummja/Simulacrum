@@ -95,12 +95,6 @@ setup_asset_copy(${TARGET})
 setup_windows_dll_copy(${TARGET})
 
 # ==============================================
-# Emscripten specific configuration
-# ==============================================
-
-# TODO
-
-# ==============================================
 # Print configuration information
 # ==============================================
 
