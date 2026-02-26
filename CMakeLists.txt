@@ -59,6 +59,10 @@ set(SOURCES
         # src/engine/input/input_manager.cpp
 )
 
+set(HEADERS
+        include/engine/render/test.hpp
+)
+
 if(WIN32)
     list(APPEND SOURCES resources.rc)
 endif()
