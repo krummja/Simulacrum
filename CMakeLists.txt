@@ -49,14 +49,16 @@ setup_project_dependencies()
 # Project source files
 # ==============================================
 
+set(SIMULACRUM_LIBRARIES_DIR libs)
+set(SIMULACRUM_SOURCE_DIR src)
+set(SIMULACRUM_HEADERS_DIR include/${PROJECT_NAME})
+
+set(HEADERS
+        ${SIMULACRUM_HEADERS_DIR}/engine/render/gpu_renderer.hpp
+)
+
 set(SOURCES
-        src/main.cpp
-        # src/engine/core/window.cpp
-        # src/engine/core/application.cpp
-        # src/engine/core/config.cpp
-        # src/engine/core/time.cpp
-        # src/engine/render/gpu_renderer.cpp
-        # src/engine/input/input_manager.cpp
+        ${SIMULACRUM_SOURCE_DIR}/engine/render/gpu_renderer.cpp
 )
 
 if(WIN32)
@@ -68,7 +70,7 @@ endif()
 # ==============================================
 
 # Create an executable file
-add_executable(${TARGET} ${SOURCES})
+add_executable(${TARGET} ${SOURCES} ${HEADERS})
 
 # Link all dependent libraries
 target_link_libraries(${TARGET}
