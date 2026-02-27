@@ -56,12 +56,12 @@ set(SOURCES
         src/engine/render/gpu_pipeline.cpp
         src/engine/render/gpu_renderer.cpp
         src/engine/render/gpu_sampler.cpp
-        src/engine/render/gpu_shader_manager.cpp
-        src/engine/render/gpu_texture.cpp
-        src/engine/render/gpu_transfer_buffer.cpp
-        src/engine/render/gpu_vertex_pool.cpp
-        src/engine/render/sprite_batch.cpp
-        src/engine/utils/resource_path.cpp
+        # src/engine/render/gpu_shader_manager.cpp
+        # src/engine/render/gpu_texture.cpp
+        # src/engine/render/gpu_transfer_buffer.cpp
+        # src/engine/render/gpu_vertex_pool.cpp
+        # src/engine/render/sprite_batch.cpp
+        # src/engine/utils/resource_path.cpp
 )
 
 if(WIN32)
