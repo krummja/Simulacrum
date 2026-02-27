@@ -51,16 +51,17 @@ setup_project_dependencies()
 
 set(SOURCES
         src/main.cpp
-        # src/engine/core/window.cpp
-        # src/engine/core/application.cpp
-        # src/engine/core/config.cpp
-        # src/engine/core/time.cpp
-        # src/engine/render/gpu_renderer.cpp
-        # src/engine/input/input_manager.cpp
-)
-
-set(HEADERS
-        include/engine/render/test.hpp
+        src/engine/render/gpu_buffer.cpp
+        src/engine/render/gpu_device.cpp
+        src/engine/render/gpu_pipeline.cpp
+        src/engine/render/gpu_renderer.cpp
+        src/engine/render/gpu_sampler.cpp
+        src/engine/render/gpu_shader_manager.cpp
+        src/engine/render/gpu_texture.cpp
+        src/engine/render/gpu_transfer_buffer.cpp
+        src/engine/render/gpu_vertex_pool.cpp
+        src/engine/render/sprite_batch.cpp
+        src/engine/utils/resource_path.cpp
 )
 
 if(WIN32)
