@@ -24,6 +24,9 @@ namespace engine::render {
     /// - Pipeline state management
     class GPURenderer {
     public:
+        static GPURenderer& Instance();
+
+        void init();
 
     private:
         GPURenderer() = default;

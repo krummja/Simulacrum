@@ -49,31 +49,26 @@ setup_project_dependencies()
 # Project source files
 # ==============================================
 
-set(SIMULACRUM_LIBRARIES_DIR libs)
-set(SIMULACRUM_SOURCE_DIR src)
-set(SIMULACRUM_HEADERS_DIR include/${PROJECT_NAME})
-
-set(HEADERS
-        ${SIMULACRUM_HEADERS_DIR}/engine/render/gpu_renderer.hpp
+add_library(Simulacrum STATIC
+        src/engine/render/gpu_device.cpp
+        src/engine/render/gpu_renderer.cpp
 )
 
-set(SOURCES
-        ${SIMULACRUM_SOURCE_DIR}/engine/render/gpu_renderer.cpp
+target_include_directories(Simulacrum PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
 )
-
-if(WIN32)
-    list(APPEND SOURCES resources.rc)
-endif()
 
 # ==============================================
 # Executable file configuration
 # ==============================================
 
 # Create an executable file
-add_executable(${TARGET} ${SOURCES} ${HEADERS})
+add_executable(${TARGET} src/main.cpp)
+
+# target_link_libraries(${TARGET} PRIVATE Simulacrum)
 
 # Link all dependent libraries
-target_link_libraries(${TARGET}
+target_link_libraries(Simulacrum
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_mixer::SDL3_mixer
@@ -81,6 +76,11 @@ target_link_libraries(${TARGET}
         glm::glm
         nlohmann_json::nlohmann_json
         spdlog::spdlog
+)
+
+target_link_libraries(${TARGET}
+        spdlog::spdlog
+        Simulacrum
 )
 
 # ==============================================
