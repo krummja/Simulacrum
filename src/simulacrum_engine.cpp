@@ -18,6 +18,8 @@
 
 namespace Simulacrum {
 
+    #define SIMULACRUM_DARK 31, 31, 31, 255
+
     bool SimulacrumEngine::init(std::string_view title) {
         spdlog::info("Initializing SDL video and gamepad");
 
@@ -182,15 +184,47 @@ namespace Simulacrum {
         logical_width = actual_width;
         logical_height = actual_height;
 
-        // if (!SDL_SetRenderDrawColor(
-        //     renderer_.get(),
-        // )) {}
+        if (!SDL_SetRenderDrawColor(renderer_.get(), SIMULACRUM_DARK)) {
+            spdlog::error("Failed to set initial render draw color: {}", SDL_GetError());
+        }
+
+        // Use native resolution rendering for crisp, sharp text.
+        // Disable logical presentation to render at native resolution
+        SDL_RendererLogicalPresentation const presentation_mode = SDL_LOGICAL_PRESENTATION_DISABLED;
+
+        if (!SDL_SetRenderLogicalPresentation(
+            renderer_.get(),
+            actual_width,
+            actual_height,
+            presentation_mode
+        )) {
+            spdlog::error("Failed to set render logical presentation: {}", SDL_GetError());
+        }
+
+        spdlog::info("Using native resolution: {}x{}", actual_width, actual_height);
+
+        // Check if icon loaded successfully
+        // TODO
+
+        // INITIALIZING GAME RESOURCE LOADING AND MANAGEMENT
+
+        // Calculate DPI-aware font sizes before threading
+        dpi_scale_ = 1.0f;
+
+        spdlog::info(
+            "DPI scale: {}, window: {}x{}",
+            dpi_scale_, window_width_, window_height_
+        );
+
+        // Use multiple threads for initialization
+        std::vector<std::future<bool>> init_tasks;  // initialization tasks vector
+        init_tasks.reserve(12);  // reserve capacity for typical number of init tasks
 
         return true;
     }
 
     void SimulacrumEngine::handleEvents() {
-
+        // TODO
     }
 
     void SimulacrumEngine::setRunning(bool running) { running_ = running; }
@@ -200,23 +234,23 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::update(float delta_time) {
-
+        // TODO
     }
 
     void SimulacrumEngine::render() {
-
+        // TODO
     }
 
     void SimulacrumEngine::present() {
-
+        // TODO
     }
 
     void SimulacrumEngine::processBackgroundTasks() {
-
+        // TODO
     }
 
     void SimulacrumEngine::setLogicalPresentationMode(SDL_RendererLogicalPresentation mode) {
-
+        // TODO
     }
 
     bool SimulacrumEngine::isVSyncEnabled() const noexcept {
@@ -228,6 +262,8 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::clean() {
+        // TODO Double check cleanup after init has been finished
+
         spdlog::info("Starting shutdown sequence...");
 
         auto window_to_destroy = std::move(window_);
@@ -258,15 +294,15 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::toggleFullscreen() {
-
+        // TODO
     }
 
     void SimulacrumEngine::setFullscreen(bool enabled) {
-
+        // TODO
     }
 
     void SimulacrumEngine::setGlobalPause(bool paused) {
-
+        // TODO
     }
 
     bool SimulacrumEngine::isGlobalPaused() const { return globally_paused_; }
@@ -276,15 +312,15 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::onWindowResize(const SDL_Event& event) {
-
+        // TODO
     }
 
     void SimulacrumEngine::onWindowEvent(const SDL_Event& event) {
-
+        // TODO
     }
 
     void SimulacrumEngine::onDisplayChange(const SDL_Event& event) {
-
+        // TODO
     }
 
 } // namespace Simulacrum
