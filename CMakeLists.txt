@@ -1,7 +1,7 @@
 # ==============================================
 # Project profile
 # ==============================================
-cmake_minimum_required(VERSION 3.26.3)
+cmake_minimum_required(VERSION 4.3)
 project(Simulacrum VERSION 0.1.0 LANGUAGES CXX)
 
 # ==============================================
@@ -12,7 +12,7 @@ project(Simulacrum VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/prebuilt)
 
 # Specify the target name
-set(TARGET ${PROJECT_NAME}-${CMAKE_SYSTEM_NAME})
+set(EXECUTABLE_TARGET ${PROJECT_NAME}-${CMAKE_SYSTEM_NAME})
 
 # Dependency library default link type:
 #   ON = dynamic link (.dll.so/.dylib)
@@ -50,40 +50,39 @@ setup_project_dependencies()
 # ==============================================
 
 set(SOURCES
-        src/main.cpp
-        src/engine/render/gpu_buffer.cpp
-        src/engine/render/gpu_device.cpp
-        src/engine/render/gpu_pipeline.cpp
-        src/engine/render/gpu_renderer.cpp
-        src/engine/render/gpu_sampler.cpp
-        # src/engine/render/gpu_shader_manager.cpp
-        # src/engine/render/gpu_texture.cpp
-        # src/engine/render/gpu_transfer_buffer.cpp
-        # src/engine/render/gpu_vertex_pool.cpp
-        # src/engine/render/sprite_batch.cpp
-        # src/engine/utils/resource_path.cpp
+        # "src/engine/managers/state_manager.cpp"
+        "src/engine/managers/settings_manager.cpp"
+        "src/engine/core/simulacrum_main.cpp"
+        "src/engine/core/timestep_manager.cpp"
+        "src/engine/core/simulacrum_engine.cpp"
 )
-
-if(WIN32)
-    list(APPEND SOURCES resources.rc)
-endif()
 
 # ==============================================
 # Executable file configuration
 # ==============================================
 
+add_subdirectory(renderlib)
+add_subdirectory(utilitylib)
+
 # Create an executable file
-add_executable(${TARGET} ${SOURCES})
+add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 
 # Link all dependent libraries
-target_link_libraries(${TARGET}
+target_link_libraries(${EXECUTABLE_TARGET}
         SDL3::SDL3
-        SDL3_image::SDL3_image
-        SDL3_mixer::SDL3_mixer
-        SDL3_ttf::SDL3_ttf
-        glm::glm
-        nlohmann_json::nlohmann_json
         spdlog::spdlog
+        nlohmann_json::nlohmann_json
+        sim::renderlib
+        sim::utilitylib
+)
+
+target_include_directories(${EXECUTABLE_TARGET}
+        PRIVATE
+                ${PROJECT_SOURCE_DIR}/src/engine
+)
+
+target_link_libraries(renderlib
+        sim::utilitylib
 )
 
 # ==============================================
@@ -91,17 +90,17 @@ target_link_libraries(${TARGET}
 # ==============================================
 
 # Set compilation options (defined in CompilerSettings.cmake)
-setup_compiler_options(${TARGET})
+setup_compiler_options(${EXECUTABLE_TARGET})
 
 # Configuration resource file copy (defined in BuildHelpers.cmake)
-setup_asset_copy(${TARGET})
+setup_asset_copy(${EXECUTABLE_TARGET})
 
 # Configure Windows DLL replication (defined in BuildHelpers.cmake)
-setup_windows_dll_copy(${TARGET})
+setup_windows_dll_copy(${EXECUTABLE_TARGET})
 
 # ==============================================
 # Print configuration information
 # ==============================================
 
 # Print project configuration completion information (defined in ProjectInfo.cmake)
-print_project_info(${TARGET})
+print_project_info(${EXECUTABLE_TARGET})
