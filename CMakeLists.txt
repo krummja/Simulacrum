@@ -38,6 +38,9 @@ include(cmake/BuildHelpers.cmake)
 # Project information printing
 include(cmake/ProjectInfo.cmake)
 
+# Shader compilation
+include(cmake/CompileShaders.cmake)
+
 # ==============================================
 # Setting up project dependencies
 # ==============================================
@@ -49,20 +52,11 @@ setup_project_dependencies()
 # Project source files
 # ==============================================
 
-set(SOURCES
-        # "src/engine/managers/state_manager.cpp"
-        "src/engine/managers/settings_manager.cpp"
-        "src/engine/core/simulacrum_main.cpp"
-        "src/engine/core/timestep_manager.cpp"
-        "src/engine/core/simulacrum_engine.cpp"
-)
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # ==============================================
 # Executable file configuration
 # ==============================================
-
-add_subdirectory(renderlib)
-add_subdirectory(utilitylib)
 
 # Create an executable file
 add_executable(${EXECUTABLE_TARGET} ${SOURCES})
@@ -72,22 +66,19 @@ target_link_libraries(${EXECUTABLE_TARGET}
         SDL3::SDL3
         spdlog::spdlog
         nlohmann_json::nlohmann_json
-        sim::renderlib
-        sim::utilitylib
 )
 
 target_include_directories(${EXECUTABLE_TARGET}
         PRIVATE
-                ${PROJECT_SOURCE_DIR}/src/engine
-)
-
-target_link_libraries(renderlib
-        sim::utilitylib
+                ${PROJECT_SOURCE_DIR}/src
 )
 
 # ==============================================
 # Application configuration
 # ==============================================
+
+# Compile shaders from GLSL -> SPV
+compile_shaders(${EXECUTABLE_TARGET})
 
 # Set compilation options (defined in CompilerSettings.cmake)
 setup_compiler_options(${EXECUTABLE_TARGET})

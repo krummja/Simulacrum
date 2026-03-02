@@ -3,8 +3,8 @@ function(setup_asset_copy TARGET_NAME)
 
     add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
         COMMAND ${CMAKE_COMMAND}
-            -DSOURCE_DIR=${CMAKE_SOURCE_DIR}/assets
-            -DTARGET_DIR=$<TARGET_FILE_DIR:${TARGET_NAME}>/assets
+            -DSOURCE_DIR=${CMAKE_SOURCE_DIR}/res
+            -DTARGET_DIR=$<TARGET_FILE_DIR:${TARGET_NAME}>/res
             -P ${COPY_SCRIPT}
         COMMENT "Check and copy asset files"
         VERBATIM

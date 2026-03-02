@@ -34,7 +34,7 @@ macro(find_or_fetch_dependency
     if("${LINK_TYPE}" STREQUAL "STATIC")
         set(_LIB_IS_SHARED OFF)
         set(_LINK_TYPE_STR "Static")
-    elseif()
+    elseif("${LINK_TYPE}" STREQUAL "SHARED")
         set(_LIB_IS_SHARED ON)
         set(_LINK_TYPE_STR "Dynamic")
     else() # AUTO or other values, using global settings
