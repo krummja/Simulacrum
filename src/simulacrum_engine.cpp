@@ -1,5 +1,6 @@
 #include "simulacrum_engine.hpp"
 #include "settings_manager.hpp"
+#include "input_manager.hpp"
 #include "gpu_device.hpp"
 #include "gpu_renderer.hpp"
 #include "resource_path.hpp"
@@ -224,7 +225,12 @@ namespace Simulacrum {
         init_tasks.push_back(
             Simulacrum::ThreadSystem::Instance().enqueueTaskWithResult(
                 []() -> bool {
-                    spdlog::info("Creating Event Manager");
+                    InputManager& input_manager = InputManager::Instance();
+                    if (!input_manager.init()) {
+                        spdlog::critical("Failed to initialize Input Manager");
+                        return false;
+                    }
+
                     return true;
                 }
             )
@@ -232,6 +238,7 @@ namespace Simulacrum {
 
         bool all_tasks_succeeded = true;
 
+        // Retrieve each init task and check status
         for (auto& task : init_tasks) {
             try {
                 all_tasks_succeeded &= task.get();
@@ -244,11 +251,72 @@ namespace Simulacrum {
             return false;
         }
 
+        running_ = true;
         return true;
     }
 
     void SimulacrumEngine::handleEvents() {
-        // TODO
+        InputManager &input_manager = InputManager::Instance();
+
+        input_manager.clearFrameInput();
+
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event)) {
+            SDL_ConvertEventToRenderCoordinates(renderer_.get(), &event);
+
+            switch (event.type) {
+                case SDL_EVENT_QUIT:
+                    setRunning(false);
+                    break;
+                case SDL_EVENT_KEY_DOWN:
+                    input_manager.onKeyDown(event);
+                    break;
+                case SDL_EVENT_KEY_UP:
+                    input_manager.onKeyUp(event);
+                    break;
+                case SDL_EVENT_MOUSE_MOTION:
+                    input_manager.onMouseMove(event);
+                    break;
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                    input_manager.onMouseButtonDown(event);
+                    break;
+                case SDL_EVENT_MOUSE_BUTTON_UP:
+                    input_manager.onMouseButtonUp(event);
+                    break;
+                case SDL_EVENT_WINDOW_RESIZED:
+                    onWindowResize(event);
+                    break;
+                case SDL_EVENT_WINDOW_MINIMIZED:
+                case SDL_EVENT_WINDOW_OCCLUDED:
+                case SDL_EVENT_WINDOW_HIDDEN:
+                case SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EVENT_WINDOW_SHOWN:
+                case SDL_EVENT_WINDOW_EXPOSED:
+                case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                    onWindowEvent(event);
+                    break;
+                case SDL_EVENT_DISPLAY_ORIENTATION:
+                case SDL_EVENT_DISPLAY_ADDED:
+                case SDL_EVENT_DISPLAY_REMOVED:
+                case SDL_EVENT_DISPLAY_MOVED:
+                case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+                    onDisplayChange(event);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        if (input_manager.isKeyJustPressed(SDL_SCANCODE_F1)) {
+            toggleFullscreen();
+        }
+
+        if (input_manager.isKeyJustPressed(SDL_SCANCODE_F3)) {
+            spdlog::info("Overlay Toggle");
+        }
     }
 
     void SimulacrumEngine::setRunning(bool running) { running_ = running; }
@@ -318,11 +386,39 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::toggleFullscreen() {
-        // TODO
+        if (!window_) {
+            spdlog::error("Cannot toggle fullscreen - window not initialized");
+            return;
+        }
+
+        is_fullscreen_ = !is_fullscreen_;
+
+        if (!SDL_SetWindowFullscreen(window_.get(), is_fullscreen_)) {
+            spdlog::error("Failed to toggle fullscreen: {}", SDL_GetError());
+            // Revert state on failure
+            is_fullscreen_ = !is_fullscreen_;
+            return;
+        }
+
+        // Restore window size when exiting fullscreen
+        if (!is_fullscreen_) {
+            if (!SDL_SetWindowSize(window_.get(), windowed_width_, windowed_height_)) {
+                spdlog::error("Failed to restore window size: {}", SDL_GetError());
+            }
+        }
     }
 
     void SimulacrumEngine::setFullscreen(bool enabled) {
-        // TODO
+        if (!window_) {
+            spdlog::error("Cannot set fullscreen - window not initialized");
+            return;
+        }
+
+        if (is_fullscreen_ == enabled) {
+            return;
+        }
+
+        toggleFullscreen();
     }
 
     void SimulacrumEngine::setGlobalPause(bool paused) {
@@ -336,7 +432,22 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::onWindowResize(const SDL_Event& event) {
-        // TODO
+        int const new_width = event.window.data1;
+        int const new_height = event.window.data2;
+
+        setWindowSize(new_width, new_height);
+
+        int actual_width;
+        int actual_height;
+        if (!SDL_GetWindowSizeInPixels(window_.get(), &actual_width, &actual_height)) {
+            spdlog::error("Failed to get actual window pixel size: {}", SDL_GetError());
+            actual_width = new_width;
+            actual_height = new_height;
+        }
+
+        setLogicalSize(actual_width, actual_height);
+
+        // TODO Additional handling after window resize
     }
 
     void SimulacrumEngine::onWindowEvent(const SDL_Event& event) {

@@ -65,6 +65,7 @@ add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 target_link_libraries(${EXECUTABLE_TARGET}
         SDL3::SDL3
         spdlog::spdlog
+        glm::glm
         nlohmann_json::nlohmann_json
 )
 

@@ -14,6 +14,8 @@ constexpr std::string_view APPLICATION_NAME{"Simulacrum"};
 
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
+    spdlog::set_level(spdlog::level::debug);
+
     spdlog::info("Initializing {}", APPLICATION_NAME);
 
     Simulacrum::ResourcePath::init();
@@ -42,8 +44,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         return -1;
     }
 
-    // state manager
-
     spdlog::info("Starting main loop");
 
     Simulacrum::TimestepManager ts = Simulacrum::TimestepManager();
@@ -52,23 +52,19 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     spdlog::info("Current FPS: {}", ts.getCurrentFPS());
     ts.endFrame();
 
-    // Simulacrum::TimestepManager& ts = engine.getTimestepManager();
+    while (engine.isRunning()) {
+        ts.startFrame();
 
-    // while (engine.isRunning()) {
-    //     ts.startFrame();
+        engine.handleEvents();
 
-    //     engine.handleEvents();
+        // while (ts.shouldUpdate()) {
+        //     engine.update(ts.getUpdateDeltaTime());
+        // }
+        // engine.render();
+        // engine.present();
 
-    //     while (ts.shouldUpdate()) {
-    //         engine.update(ts.getUpdateDeltaTime());
-    //     }
-
-    //     engine.render();
-
-    //     engine.present();
-
-    //     ts.endFrame();
-    // }
+        ts.endFrame();
+    }
 
     engine.clean();
 

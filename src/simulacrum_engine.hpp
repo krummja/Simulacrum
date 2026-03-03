@@ -78,6 +78,11 @@ namespace Simulacrum {
             }
         }
 
+        void setLogicalSize(int width, int height) {
+            logical_width_ = width;
+            logical_height_ = height;
+        }
+
         void setLogicalPresentationMode(SDL_RendererLogicalPresentation mode);
 
         SDL_RendererLogicalPresentation getLogicalPresentationMode() const noexcept;

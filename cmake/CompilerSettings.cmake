@@ -1,6 +1,6 @@
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 set(SUPPRESS_CONSOLE_WINDOW OFF)
 
 function(setup_compiler_options TARGET_NAME)
@@ -9,6 +9,7 @@ function(setup_compiler_options TARGET_NAME)
         target_compile_options(${TARGET_NAME} PRIVATE /W4 /utf-8)
         # Support for parallel compilation
         add_compile_options(/MP)
+        add_compile_options(/std=c++latest)
 
         # Suppress console window
         if (SUPPRESS_CONSOLE_WINDOW)
@@ -16,7 +17,16 @@ function(setup_compiler_options TARGET_NAME)
         endif()
     elseif(WIN32 AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
         # MinGW/Clang on Windows: Set UTF-8 encoding
-        target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -Wpedantic -finput-charset=utf-8 -fexec-charset=utf-8)
+        target_compile_options(
+            ${TARGET_NAME}
+            PRIVATE
+                -Wall                   # all warnings
+                -Wextra                 # extra warnings
+                -Wpedantic              # strict ISO C++ warnings
+                -finput-charset=utf-8   # input character encoding
+                -fexec-charset=utf-8    # execuction character encoding
+                -std=c++20
+        )
     else()
         # Linux/macOS: Standard warning options
         target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -Wpedantic)
