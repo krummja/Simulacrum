@@ -1,4 +1,4 @@
-// #include "thread_system.hpp"
+#include "thread_system.hpp"
 #include "simulacrum_engine.hpp"
 #include "timestep_manager.hpp"
 #include "resource_path.hpp"
@@ -21,7 +21,17 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     bool res_exists = Simulacrum::ResourcePath::exists("Debug");
     spdlog::info("Resource directory exist: {}", res_exists);
 
-    // Simulacrum::ThreadSystem& thread_system = Simulacrum::ThreadSystem::Instance();
+    Simulacrum::ThreadSystem& thread_system = Simulacrum::ThreadSystem::Instance();
+
+    try {
+        if (!thread_system.init()) {
+            spdlog::critical("Failed to initialized thread system");
+            return -1;
+        }
+    } catch (const std::exception& exc) {
+        spdlog::critical("Exception during thread system initialization: {}", exc.what());
+        return -1;
+    }
 
     Simulacrum::SimulacrumEngine& engine = Simulacrum::SimulacrumEngine::Instance();
 

@@ -3,6 +3,7 @@
 #include "gpu_device.hpp"
 #include "gpu_renderer.hpp"
 #include "resource_path.hpp"
+#include "thread_system.hpp"
 
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
@@ -219,6 +220,29 @@ namespace Simulacrum {
         // Use multiple threads for initialization
         std::vector<std::future<bool>> init_tasks;  // initialization tasks vector
         init_tasks.reserve(12);  // reserve capacity for typical number of init tasks
+
+        init_tasks.push_back(
+            Simulacrum::ThreadSystem::Instance().enqueueTaskWithResult(
+                []() -> bool {
+                    spdlog::info("Creating Event Manager");
+                    return true;
+                }
+            )
+        );
+
+        bool all_tasks_succeeded = true;
+
+        for (auto& task : init_tasks) {
+            try {
+                all_tasks_succeeded &= task.get();
+            } catch (const std::exception& exc) {
+                all_tasks_succeeded = false;
+            }
+        }
+
+        if (!all_tasks_succeeded) {
+            return false;
+        }
 
         return true;
     }
