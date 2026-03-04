@@ -17,7 +17,7 @@ namespace Simulacrum {
     public:
         StateManager();
 
-        void addState(std::unique_ptr<Simulacrum::State> state);
+        void addState(std::unique_ptr<State> state);
         void pushState(const std::string& state_name);
         void popState();
         void changeState(const std::string& state_name);
@@ -28,10 +28,10 @@ namespace Simulacrum {
 
         void recordGPUVertices(GPURenderer& gpu_renderer, float interpolation_alpha);
         void renderGPUScene(GPURenderer& renderer, SDL_GPURenderPass* scene_pass, float interpolation_alpha);
-        void renderGPUUIScene(GPURenderer& renderer, SDL_GPURenderPass* swapchain_pass);
+        void renderGPUUI(GPURenderer& renderer, SDL_GPURenderPass* swapchain_pass);
 
         bool hasState(const std::string& state_name) const;
-        std::shared_ptr<Simulacrum::State> getState(const std::string& state_name) const;
+        std::shared_ptr<State> getState(const std::string& state_name) const;
         void removeState(const std::string& state_name);
         void clearAllStates();
 
@@ -39,8 +39,8 @@ namespace Simulacrum {
         float getCurrentFPS() const { return current_fps_; }
 
     private:
-        std::unordered_map<std::string, std::shared_ptr<Simulacrum::State>> registered_states_;
-        std::vector<std::shared_ptr<Simulacrum::State>> active_states_;
+        std::unordered_map<std::string, std::shared_ptr<State>> registered_states_;
+        std::vector<std::shared_ptr<State>> active_states_;
 
         float last_delta_time_{0.0f};
         float current_fps_{0.0f};

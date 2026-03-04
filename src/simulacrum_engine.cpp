@@ -236,6 +236,8 @@ namespace Simulacrum {
             )
         );
 
+
+
         bool all_tasks_succeeded = true;
 
         // Retrieve each init task and check status
