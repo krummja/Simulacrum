@@ -3,14 +3,14 @@
 #include "macros.hpp"
 #include <string>
 
-class StateManager;
 struct SDL_GPURenderPass;
 struct SDL_Renderer;
 
 namespace Simulacrum {
+    class StateManager;
     class GPURenderer;
 
-    class Simulacrum_API State {
+    class State {
     public:
         virtual bool enter() = 0;
         virtual void update(float delta_time) = 0;

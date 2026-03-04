@@ -19,7 +19,7 @@ namespace Simulacrum {
         const std::string name = state->getName();
         if (hasState(name)) {
             spdlog::error("State with name {} already exists", name);
-            throw std::runtime_error("State name already exists");
+            throw std::runtime_error(std::format("State with name {} already exists", name));
         }
 
         state->setStateManager(this);

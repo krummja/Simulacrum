@@ -13,7 +13,7 @@ class GPURenderer;
 
 namespace Simulacrum {
 
-    class Simulacrum_API StateManager {
+    class StateManager {
     public:
         StateManager();
 

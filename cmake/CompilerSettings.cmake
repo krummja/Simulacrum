@@ -8,8 +8,9 @@ function(setup_compiler_options TARGET_NAME)
         # Visual Studio: Enable all warnings + UTF-8 encoding support
         target_compile_options(${TARGET_NAME} PRIVATE /W4 /utf-8)
         # Support for parallel compilation
-        add_compile_options(/MP)
-        add_compile_options(/std=c++latest)
+        add_compile_options(/MP /std=c++latest)
+        # Additional features
+        # add_compile_options(/std=c++latest)
 
         # Suppress console window
         if (SUPPRESS_CONSOLE_WINDOW)
