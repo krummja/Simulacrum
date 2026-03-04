@@ -11,6 +11,10 @@ namespace Simulacrum {
     public:
         LoadingState() = default;
 
+        void configure(const std::string& target_state_name);
+
+
+
     private:
 
     };
