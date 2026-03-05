@@ -5,6 +5,7 @@
 #include "gpu_renderer.hpp"
 #include "resource_path.hpp"
 #include "thread_system.hpp"
+#include "state_manager.hpp"
 
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
@@ -21,6 +22,7 @@
 namespace Simulacrum {
 
     #define SIMULACRUM_DARK 31, 31, 31, 255
+    #define SIMULACRUM_SAKURA 240, 5, 74, 255
 
     bool SimulacrumEngine::init(std::string_view title) {
         spdlog::info("Initializing SDL video and gamepad");
@@ -186,7 +188,7 @@ namespace Simulacrum {
         logical_width = actual_width;
         logical_height = actual_height;
 
-        if (!SDL_SetRenderDrawColor(renderer_.get(), SIMULACRUM_DARK)) {
+        if (!SDL_SetRenderDrawColor(renderer_.get(), SIMULACRUM_SAKURA)) {
             spdlog::error("Failed to set initial render draw color: {}", SDL_GetError());
         }
 
@@ -236,7 +238,27 @@ namespace Simulacrum {
             )
         );
 
+        // TODO Texture Manager
 
+        // TODO Sound Manager
+
+        // TODO Font Manager
+
+        // TODO Save Game Manager
+
+        // TODO Collision Manager
+
+        // TODO AI Manager
+
+        // TODO Particle Manager
+
+        // TODO Resource Template Manager
+
+        // TODO World Manager
+
+        state_manager_ = std::make_unique<StateManager>();
+
+        // TODO UI Manager
 
         bool all_tasks_succeeded = true;
 
@@ -319,6 +341,8 @@ namespace Simulacrum {
         if (input_manager.isKeyJustPressed(SDL_SCANCODE_F3)) {
             spdlog::info("Overlay Toggle");
         }
+
+        state_manager_->handleInput();
     }
 
     void SimulacrumEngine::setRunning(bool running) { running_ = running; }
@@ -328,15 +352,38 @@ namespace Simulacrum {
     }
 
     void SimulacrumEngine::update(float delta_time) {
-        // TODO
+
+        state_manager_->setCurrentFPS(timestep_manager_->getCurrentFPS());
+        state_manager_->update(delta_time);
+
     }
 
     void SimulacrumEngine::render() {
-        // TODO
+        float interpolation_alpha = static_cast<float>(timestep_manager_->getInterpolationAlpha());
+
+        auto& gpu_renderer = Simulacrum::GPURenderer::Instance();
+        gpu_renderer.beginFrame();
+
+        state_manager_->recordGPUVertices(gpu_renderer, interpolation_alpha);
+
+        SDL_GPURenderPass* scene_pass = gpu_renderer.beginScenePass();
+
+        if (scene_pass) {
+            state_manager_->renderGPUScene(gpu_renderer, scene_pass, interpolation_alpha);
+        }
+
+        SDL_GPURenderPass* swapchain_pass = gpu_renderer.beginSwapchainPass();
+
+        if (swapchain_pass) {
+            gpu_renderer.renderComposite(swapchain_pass);
+            state_manager_->renderGPUUI(gpu_renderer, swapchain_pass);
+        }
+
+        // Note: endFrame() called in present() to separate render/vsync timing
     }
 
     void SimulacrumEngine::present() {
-        // TODO
+        Simulacrum::GPURenderer::Instance().endFrame();
     }
 
     void SimulacrumEngine::processBackgroundTasks() {

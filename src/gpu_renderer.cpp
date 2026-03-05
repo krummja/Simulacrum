@@ -234,7 +234,7 @@ namespace Simulacrum {
         // Begin scene render pass
         SDL_GPUColorTargetInfo color_target = scene_texture_->asColorTarget(
             SDL_GPU_LOADOP_CLEAR,
-            {0.122f, 0.125f, 0.133f, 1.0f}
+            {0.95f, 0.02f, 0.30f, 1.0f}
         );
 
         current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);

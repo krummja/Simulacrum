@@ -57,11 +57,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
 
         engine.handleEvents();
 
-        // while (ts.shouldUpdate()) {
-        //     engine.update(ts.getUpdateDeltaTime());
-        // }
-        // engine.render();
-        // engine.present();
+        while (ts.shouldUpdate()) {
+
+            engine.update(ts.getUpdateDeltaTime());
+
+        }
+
+        engine.render();
+
+        engine.present();
 
         ts.endFrame();
     }

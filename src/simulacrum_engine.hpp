@@ -1,6 +1,7 @@
 #pragma once
 #include "macros.hpp"
 #include "timestep_manager.hpp"
+#include "state_manager.hpp"
 
 #include <SDL3/SDL.h>
 #include <memory>
@@ -111,7 +112,7 @@ namespace Simulacrum {
         void onWindowEvent(const SDL_Event& event);
         void onDisplayChange(const SDL_Event& event);
 
-        // std::unique_ptr<StateManager> state_manager_{nullptr};
+        std::unique_ptr<StateManager> state_manager_{nullptr};
         std::unique_ptr<TimestepManager> timestep_manager_{nullptr};
 
         std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_{nullptr, SDL_DestroyWindow};
