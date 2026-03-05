@@ -44,13 +44,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         return -1;
     }
 
-    spdlog::info("Starting main loop");
+    engine.getStateManager()->pushState("Loading State");
 
     Simulacrum::TimestepManager ts = Simulacrum::TimestepManager();
 
     ts.startFrame();
     spdlog::info("Current FPS: {}", ts.getCurrentFPS());
     ts.endFrame();
+
+    spdlog::info("Starting main loop");
 
     while (engine.isRunning()) {
         ts.startFrame();

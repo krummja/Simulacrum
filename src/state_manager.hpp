@@ -9,9 +9,9 @@
 #include <vector>
 
 struct SDL_GPURenderPass;
-class GPURenderer;
 
 namespace Simulacrum {
+    class GPURenderer;
 
     class StateManager {
     public:

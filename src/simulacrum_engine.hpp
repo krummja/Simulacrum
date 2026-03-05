@@ -1,14 +1,15 @@
 #pragma once
+
 #include "macros.hpp"
 #include "timestep_manager.hpp"
 #include "state_manager.hpp"
-
 #include <SDL3/SDL.h>
 #include <memory>
 #include <string_view>
 
-
 namespace Simulacrum {
+    // Forward declarations
+    class GPURenderer;
 
     class SimulacrumEngine {
     public:
@@ -33,9 +34,9 @@ namespace Simulacrum {
 
         void processBackgroundTasks();
 
-        // StateManager* getStateManager() const {
-        //     return state_manager_.get();
-        // }
+        StateManager* getStateManager() const {
+            return state_manager_.get();
+        }
 
         TimestepManager& getTimestepManager() {
             return *timestep_manager_;
@@ -51,9 +52,9 @@ namespace Simulacrum {
 
         void setRunning(bool running);
 
-        SDL_Renderer* getRenderer() const noexcept {
-            return renderer_.get();
-        }
+        // SDL_Renderer* getRenderer() const noexcept {
+        //     return renderer_.get();
+        // }
 
         SDL_Window* getWindow() const noexcept {
             return window_.get();
@@ -116,7 +117,7 @@ namespace Simulacrum {
         std::unique_ptr<TimestepManager> timestep_manager_{nullptr};
 
         std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_{nullptr, SDL_DestroyWindow};
-        std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer_{nullptr, SDL_DestroyRenderer};
+        // std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer_{nullptr, SDL_DestroyRenderer};
 
         bool running_{false};
         int window_width_{0};

@@ -198,6 +198,37 @@ namespace Simulacrum {
         SDL_GPURenderPass* pass,
         SDL_GPUGraphicsPipeline* pipeline,
         SDL_GPUBuffer* vertex_buffer
-    ) {}
+    ) {
+        if (!pass || !pipeline || !vertex_buffer || sprite_count_ == 0) {
+            return;
+        }
+
+        // Bind pipeline
+        SDL_BindGPUGraphicsPipeline(pass, pipeline);
+
+        // Bind texture and sampler, if they exist
+        if (texture_ && sampler_) {
+            SDL_GPUTextureSamplerBinding tex_sampler{};
+            tex_sampler.texture = texture_;
+            tex_sampler.sampler = sampler_;
+            SDL_BindGPUFragmentSamplers(pass, 0, &tex_sampler, 1);
+        }
+
+        // Bind vertex buffer
+        SDL_GPUBufferBinding vertex_binding{};
+        vertex_binding.buffer = vertex_buffer;
+        vertex_binding.offset = 0;
+        SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
+
+        // Bind index buffer
+        SDL_GPUBufferBinding index_binding{};
+        index_binding.buffer = index_buffer_.get();
+        index_binding.offset = 0;
+        SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+        // Issue indexed draw call
+        uint32_t index_count = static_cast<uint32_t>(sprite_count_ * INDICES_PER_SPRITE);
+        SDL_DrawGPUIndexedPrimitives(pass, index_count, 1, 0, 0, 0);
+    }
 
 } // namespace Simulacrum

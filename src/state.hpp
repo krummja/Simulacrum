@@ -30,7 +30,7 @@ namespace Simulacrum {
         virtual void recordGPUVertices(
             [[maybe_unused]] GPURenderer& gpu_renderer,
             [[maybe_unused]] float interpolation_alpha
-        );
+        ) {}
 
         /// @brief Issue GPU draw calls during scene pass.
         /// Override in states that support GPU rendering.
@@ -41,7 +41,7 @@ namespace Simulacrum {
             [[maybe_unused]] GPURenderer& gpu_renderer,
             [[maybe_unused]] SDL_GPURenderPass* scene_pass,
             [[maybe_unused]] float interpolation_alpha
-        );
+        ) {}
 
         /// @brief Render UI/overlays during swapchain pass.
         /// Overrides in states that need to render UI with GPU.
@@ -51,7 +51,7 @@ namespace Simulacrum {
         virtual void renderGPUUI(
             [[maybe_unused]] GPURenderer& gpu_renderer,
             [[maybe_unused]] SDL_GPURenderPass* swapchain_pass
-        );
+        ) {}
 
         void setStateManager(StateManager* manager) { state_manager_ = manager; }
 

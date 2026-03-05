@@ -1,3 +1,7 @@
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
+#include "SDL3/SDL_video.h"
+
 #include "simulacrum_engine.hpp"
 #include "settings_manager.hpp"
 #include "input_manager.hpp"
@@ -7,9 +11,7 @@
 #include "thread_system.hpp"
 #include "state_manager.hpp"
 
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_surface.h"
-#include "SDL3/SDL_video.h"
+#include "state_loading.hpp"
 
 #include <cstdlib>
 #include <format>
@@ -128,12 +130,12 @@ namespace Simulacrum {
             spdlog::error("Failed to get window logical size: {}", SDL_GetError());
         }
 
-        renderer_.reset(SDL_CreateRenderer(window_.get(), NULL));
+        // renderer_.reset(SDL_CreateRenderer(window_.get(), NULL));
 
-        if (!renderer_) {
-            spdlog::error("Failed to create renderer: {}", SDL_GetError());
-            return false;
-        }
+        // if (!renderer_) {
+        //     spdlog::error("Failed to create renderer: {}", SDL_GetError());
+        //     return false;
+        // }
 
         spdlog::info("GPU rendering system online");
 
@@ -150,24 +152,24 @@ namespace Simulacrum {
         // Create TimestepManager (uses default 60 FPS target and 1/60s fixed timestep)
         timestep_manager_ = std::make_unique<Simulacrum::TimestepManager>();
 
-        bool vsync_set_successfully = SDL_SetRenderVSync(
-            renderer_.get(),
-            vsync_requested ? 1 : 0
-        );
+        // bool vsync_set_successfully = SDL_SetRenderVSync(
+        //     renderer_.get(),
+        //     vsync_requested ? 1 : 0
+        // );
 
-        if (!vsync_set_successfully) {
-            spdlog::warn(
-                "Failed to {} VSync: {}",
-                vsync_requested ? "enable" : "disable",
-                SDL_GetError()
-            );
-        }
+        // if (!vsync_set_successfully) {
+        //     spdlog::warn(
+        //         "Failed to {} VSync: {}",
+        //         vsync_requested ? "enable" : "disable",
+        //         SDL_GetError()
+        //     );
+        // }
 
-        if (vsync_set_successfully) {
-            verifyVsyncState(vsync_requested);
-        } else {
-            timestep_manager_->setSoftwareFrameLimiting(true);
-        }
+        // if (vsync_set_successfully) {
+        //     verifyVsyncState(vsync_requested);
+        // } else {
+        //     timestep_manager_->setSoftwareFrameLimiting(true);
+        // }
 
         if (timestep_manager_->isUsingSoftwareFrameLimiting()) {
             spdlog::info(
@@ -188,22 +190,22 @@ namespace Simulacrum {
         logical_width = actual_width;
         logical_height = actual_height;
 
-        if (!SDL_SetRenderDrawColor(renderer_.get(), SIMULACRUM_SAKURA)) {
-            spdlog::error("Failed to set initial render draw color: {}", SDL_GetError());
-        }
+        // if (!SDL_SetRenderDrawColor(renderer_.get(), SIMULACRUM_SAKURA)) {
+        //     spdlog::error("Failed to set initial render draw color: {}", SDL_GetError());
+        // }
 
-        // Use native resolution rendering for crisp, sharp text.
-        // Disable logical presentation to render at native resolution
-        SDL_RendererLogicalPresentation const presentation_mode = SDL_LOGICAL_PRESENTATION_DISABLED;
+        // // Use native resolution rendering for crisp, sharp text.
+        // // Disable logical presentation to render at native resolution
+        // SDL_RendererLogicalPresentation const presentation_mode = SDL_LOGICAL_PRESENTATION_DISABLED;
 
-        if (!SDL_SetRenderLogicalPresentation(
-            renderer_.get(),
-            actual_width,
-            actual_height,
-            presentation_mode
-        )) {
-            spdlog::error("Failed to set render logical presentation: {}", SDL_GetError());
-        }
+        // if (!SDL_SetRenderLogicalPresentation(
+        //     renderer_.get(),
+        //     actual_width,
+        //     actual_height,
+        //     presentation_mode
+        // )) {
+        //     spdlog::error("Failed to set render logical presentation: {}", SDL_GetError());
+        // }
 
         spdlog::info("Using native resolution: {}x{}", actual_width, actual_height);
 
@@ -258,6 +260,8 @@ namespace Simulacrum {
 
         state_manager_ = std::make_unique<StateManager>();
 
+        state_manager_->addState(std::make_unique<LoadingState>());
+
         // TODO UI Manager
 
         bool all_tasks_succeeded = true;
@@ -287,7 +291,7 @@ namespace Simulacrum {
         SDL_Event event;
 
         while (SDL_PollEvent(&event)) {
-            SDL_ConvertEventToRenderCoordinates(renderer_.get(), &event);
+            // SDL_ConvertEventToRenderCoordinates(renderer_.get(), &event);
 
             switch (event.type) {
                 case SDL_EVENT_QUIT:
@@ -408,7 +412,7 @@ namespace Simulacrum {
         spdlog::info("Starting shutdown sequence...");
 
         auto window_to_destroy = std::move(window_);
-        auto renderer_to_destroy = std::move(renderer_);
+        // auto renderer_to_destroy = std::move(renderer_);
 
         spdlog::info("Shutting down GPU renderer...");
         Simulacrum::GPURenderer::Instance().shutdown();
@@ -416,9 +420,9 @@ namespace Simulacrum {
         spdlog::info("Shutting down GPU device...");
         Simulacrum::GPUDevice::Instance().shutdown();
 
-        spdlog::info("Destroying renderer...");
-        renderer_to_destroy.reset();
-        spdlog::info("Renderer destroyed successfully");
+        // spdlog::info("Destroying renderer...");
+        // renderer_to_destroy.reset();
+        // spdlog::info("Renderer destroyed successfully");
 
         spdlog::info("Destroying window...");
         window_to_destroy.reset();

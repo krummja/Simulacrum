@@ -9,7 +9,6 @@
 #include "gpu_pipeline.hpp"
 #include "gpu_vertex_pool.hpp"
 #include "sprite_batch.hpp"
-
 #include <SDL3/SDL_gpu.h>
 #include <memory>
 #include <vector>

@@ -327,6 +327,22 @@ namespace Simulacrum {
         return ui_primitive_pipeline_.get();
     }
 
+    SDL_GPUGraphicsPipeline* GPURenderer::getCompositePipeline() const {
+        return composite_pipeline_.get();
+    }
+
+    SDL_GPUGraphicsPipeline* GPURenderer::getSpriteOpaquePipeline() const {
+        return sprite_opaque_pipeline_.get();
+    }
+
+    SDL_GPUGraphicsPipeline* GPURenderer::getSpriteAlphaPipeline() const {
+        return sprite_alpha_pipeline_.get();
+    }
+
+    SDL_GPUGraphicsPipeline* GPURenderer::getParticlePipeline() const {
+        return particle_pipeline_.get();
+    }
+
     void GPURenderer::updateViewport(uint32_t width, uint32_t height) {
         if (width == 0 || height == 0) {
             spdlog::warn("GPURenderer::updateViewport() ignored invalid size {}x{}", width, height);

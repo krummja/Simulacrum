@@ -25,9 +25,9 @@ namespace Simulacrum {
 
         std::string getName() const override;
 
-        void recordGPUVertices(Simulacrum::GPURenderer& gpu_renderer, float interpolation_alpha) override;
+        void recordGPUVertices(GPURenderer& gpu_renderer, float interpolation_alpha) override;
 
-        void renderGPUUI(Simulacrum::GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass) override;
+        void renderGPUUI(GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass) override;
 
     private:
         std::string target_state_name_;
