@@ -50,10 +50,10 @@ def replace_symbol(file: Path) -> None:
     include_expr = re.compile(r'^(#include\s")([a-z_]*)(.hpp")')
 
     read_source = open(file, "r")
-    write_source = open(file, "w")
-
     lines = read_source.readlines()
+    read_source.close()
 
+    write_source = open(file, "w")
     for line in lines:
         result = include_expr.match(line)
 
@@ -64,9 +64,8 @@ def replace_symbol(file: Path) -> None:
             after_part = result_grps[-1]
             line = f"{before_part}{snake_to_pascal(result)}{after_part}\n"
 
-    write_source.writelines(lines)
+        _ = write_source.write(line)
 
-    read_source.close()
     write_source.close()
 
 
