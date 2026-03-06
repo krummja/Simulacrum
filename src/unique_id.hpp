@@ -5,7 +5,7 @@
 
 namespace Simulacrum {
 
-    class UniqueId {
+    class UniqueID {
     public:
         using IDType = uint64_t;
 
