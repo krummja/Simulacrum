@@ -1,5 +1,5 @@
 #pragma once
-#include "macros.hpp"
+#include "Macros.hpp"
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>

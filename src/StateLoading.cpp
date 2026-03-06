@@ -1,9 +1,9 @@
-#include "state_loading.hpp"
-#include "simulacrum_engine.hpp"
-#include "thread_system.hpp"
-#include "state_manager.hpp"
-#include "gpu_renderer.hpp"
-#include "gpu_types.hpp"
+#include "StateLoading.hpp"
+#include "SimulacrumEngine.hpp"
+#include "ThreadSystem.hpp"
+#include "StateManager.hpp"
+#include "GpuRenderer.hpp"
+#include "GpuTypes.hpp"
 
 #include <format>
 

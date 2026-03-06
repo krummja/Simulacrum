@@ -1,14 +1,14 @@
 #pragma once
 
-#include "gpu_types.hpp"
-#include "gpu_device.hpp"
-#include "gpu_texture.hpp"
-#include "gpu_sampler.hpp"
-#include "gpu_buffer.hpp"
-#include "gpu_transfer_buffer.hpp"
-#include "gpu_pipeline.hpp"
-#include "gpu_vertex_pool.hpp"
-#include "sprite_batch.hpp"
+#include "GpuTypes.hpp"
+#include "GpuDevice.hpp"
+#include "GpuTexture.hpp"
+#include "GpuSampler.hpp"
+#include "GpuBuffer.hpp"
+#include "GpuTransferBuffer.hpp"
+#include "GpuPipeline.hpp"
+#include "GpuVertexPool.hpp"
+#include "SpriteBatch.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <memory>
 #include <vector>

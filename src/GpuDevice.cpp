@@ -1,4 +1,4 @@
-#include "gpu_device.hpp"
+#include "GpuDevice.hpp"
 
 #include <spdlog/spdlog.h>
 #include <format>

@@ -1,4 +1,4 @@
-#include "gpu_pipeline.hpp"
+#include "GpuPipeline.hpp"
 #include <spdlog/spdlog.h>
 
 namespace Simulacrum

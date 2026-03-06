@@ -2,16 +2,16 @@
 #include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 
-#include "simulacrum_engine.hpp"
-#include "settings_manager.hpp"
-#include "input_manager.hpp"
-#include "gpu_device.hpp"
-#include "gpu_renderer.hpp"
-#include "resource_path.hpp"
-#include "thread_system.hpp"
-#include "state_manager.hpp"
+#include "SimulacrumEngine.hpp"
+#include "SettingsManager.hpp"
+#include "InputManager.hpp"
+#include "GpuDevice.hpp"
+#include "GpuRenderer.hpp"
+#include "ResourcePath.hpp"
+#include "ThreadSystem.hpp"
+#include "StateManager.hpp"
 
-#include "state_loading.hpp"
+#include "StateLoading.hpp"
 
 #include <cstdlib>
 #include <format>

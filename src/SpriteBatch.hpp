@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gpu_types.hpp"
-#include "gpu_buffer.hpp"
+#include "GpuTypes.hpp"
+#include "GpuBuffer.hpp"
 #include <SDL3/SDL_gpu.h>
 #include <cstdint>
 #include <vector>

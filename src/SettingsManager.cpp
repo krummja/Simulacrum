@@ -1,4 +1,4 @@
-#include "settings_manager.hpp"
+#include "SettingsManager.hpp"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <fstream>

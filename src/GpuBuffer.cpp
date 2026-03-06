@@ -1,4 +1,4 @@
-#include "gpu_buffer.hpp"
+#include "GpuBuffer.hpp"
 
 #include <spdlog/spdlog.h>
 #include <format>

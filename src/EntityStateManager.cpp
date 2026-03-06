@@ -1,5 +1,5 @@
-#include "entity_state_manager.hpp"
-#include "entity_state.hpp"
+#include "EntityStateManager.hpp"
+#include "EntityState.hpp"
 
 namespace Simulacrum
 {

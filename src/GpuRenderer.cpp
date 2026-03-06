@@ -1,6 +1,6 @@
-#include "resource_path.hpp"
-#include "gpu_renderer.hpp"
-#include "gpu_shader_manager.hpp"
+#include "ResourcePath.hpp"
+#include "GpuRenderer.hpp"
+#include "GpuShaderManager.hpp"
 #include <cstring>
 #include <format>
 #include <spdlog/spdlog.h>

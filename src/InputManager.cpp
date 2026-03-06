@@ -1,5 +1,5 @@
-#include "input_manager.hpp"
-#include "simulacrum_engine.hpp"
+#include "InputManager.hpp"
+#include "SimulacrumEngine.hpp"
 #include <spdlog/spdlog.h>
 #include <glm/glm.hpp>
 #include <algorithm>

@@ -1,4 +1,4 @@
-#include "gpu_transfer_buffer.hpp"
+#include "GpuTransferBuffer.hpp"
 #include <spdlog/spdlog.h>
 
 namespace Simulacrum

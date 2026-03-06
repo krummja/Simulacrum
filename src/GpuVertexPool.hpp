@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gpu_buffer.hpp"
-#include "gpu_transfer_buffer.hpp"
+#include "GpuBuffer.hpp"
+#include "GpuTransferBuffer.hpp"
 #include <array>
 #include <cstdint>
 

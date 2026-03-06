@@ -1,7 +1,7 @@
-#include "thread_system.hpp"
-#include "simulacrum_engine.hpp"
-#include "timestep_manager.hpp"
-#include "resource_path.hpp"
+#include "ThreadSystem.hpp"
+#include "SimulacrumEngine.hpp"
+#include "TimestepManager.hpp"
+#include "ResourcePath.hpp"
 
 #include <array>
 #include <chrono>

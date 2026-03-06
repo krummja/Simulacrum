@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include "entity_state.hpp"
+#include "EntityState.hpp"
 
 namespace Simulacrum {
 

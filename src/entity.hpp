@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entity_handle.hpp"
-#include "unique_id.hpp"
+#include "EntityHandle.hpp"
+#include "UniqueId.hpp"
 #include "glm/glm.hpp"
 #include <SDL3/SDL.h>
 #include <memory>

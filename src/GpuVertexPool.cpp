@@ -1,4 +1,4 @@
-#include "gpu_vertex_pool.hpp"
+#include "GpuVertexPool.hpp"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 

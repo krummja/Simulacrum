@@ -1,7 +1,7 @@
-#include "macros.hpp"
-#include "state_manager.hpp"
-#include "state.hpp"
-#include "gpu_renderer.hpp"
+#include "Macros.hpp"
+#include "StateManager.hpp"
+#include "State.hpp"
+#include "GpuRenderer.hpp"
 #include <spdlog/spdlog.h>
 #include <format>
 #include <algorithm>

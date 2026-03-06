@@ -1,6 +1,6 @@
 #pragma once
 
-#include "macros.hpp"
+#include "Macros.hpp"
 
 #include <cstdint>
 #include <chrono>

@@ -2,7 +2,7 @@
 
 #include <string>
 #include <memory>
-#include "event_type_id.hpp"
+#include "EventTypeId.hpp"
 
 namespace Simulacrum {
 

@@ -1,4 +1,4 @@
-#include "gpu_texture.hpp"
+#include "GpuTexture.hpp"
 #include <format>
 #include <spdlog/spdlog.h>
 

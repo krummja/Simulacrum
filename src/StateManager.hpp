@@ -1,7 +1,7 @@
 #pragma once
 
-#include "macros.hpp"
-#include "state.hpp"
+#include "Macros.hpp"
+#include "State.hpp"
 
 #include <memory>
 #include <string>

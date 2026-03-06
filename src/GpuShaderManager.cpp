@@ -1,5 +1,5 @@
-#include "gpu_shader_manager.hpp"
-#include "resource_path.hpp"
+#include "GpuShaderManager.hpp"
+#include "ResourcePath.hpp"
 #include <format>
 #include <fstream>
 #include <vector>

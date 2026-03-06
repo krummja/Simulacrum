@@ -43,10 +43,6 @@ def get_extension(filename: str) -> str:
 
 
 def replace_symbol(file: Path) -> None:
-    extension = get_extension(file.name)
-    if extension != "cpp":
-        return
-
     include_expr = re.compile(r'^(#include\s")([a-z_]*)(.hpp")')
 
     read_source = open(file, "r")

@@ -1,6 +1,6 @@
-#include "sprite_batch.hpp"
-#include "gpu_types.hpp"
-#include "gpu_transfer_buffer.hpp"
+#include "SpriteBatch.hpp"
+#include "GpuTypes.hpp"
+#include "GpuTransferBuffer.hpp"
 #include <spdlog/spdlog.h>
 #include <cstring>
 

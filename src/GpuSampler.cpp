@@ -1,4 +1,4 @@
-#include "gpu_sampler.hpp"
+#include "GpuSampler.hpp"
 #include <spdlog/spdlog.h>
 
 namespace Simulacrum

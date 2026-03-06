@@ -1,8 +1,8 @@
 #pragma once
 
-#include "macros.hpp"
-#include "timestep_manager.hpp"
-#include "state_manager.hpp"
+#include "Macros.hpp"
+#include "TimestepManager.hpp"
+#include "StateManager.hpp"
 #include <SDL3/SDL.h>
 #include <memory>
 #include <string_view>

@@ -1,4 +1,4 @@
-#include "resource_path.hpp"
+#include "ResourcePath.hpp"
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
