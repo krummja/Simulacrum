@@ -42,43 +42,44 @@ def get_extension(filename: str) -> str:
     return filename.split(".")[-1]
 
 
-def replace_symbol(path: Path, file: Path) -> None:
+def replace_symbol(file: Path) -> None:
     extension = get_extension(file.name)
     if extension != "cpp":
         return
 
-    stem = file.stem
-    target = pascal_to_snake(stem)
-    classname = snake_to_pascal(target)
-
     include_expr = re.compile(r'^(#include\s")([a-z_]*)(.hpp")')
 
-    with open(path, "r") as source:
-        lines = source.readlines()
+    read_source = open(file, "r")
+    write_source = open(file, "w")
 
-    with open(path, "w") as writeable_source:
-        for line in lines:
-            result = include_expr.match(line)
-            if result is not None:
-                result_grps = result.groups()
-                before_part = result_grps[0]
-                result = result_grps[1]
-                after_part = result_grps[-1]
-                modified = f"{before_part}{snake_to_pascal(result)}{after_part}\n"
-                print([line, modified])
-            # line = line.replace(target, classname)
-            # _ = writeable_source.write(line)
+    lines = read_source.readlines()
+
+    for line in lines:
+        result = include_expr.match(line)
+
+        if result is not None:
+            result_grps = result.groups()
+            before_part = result_grps[0]
+            result = result_grps[1]
+            after_part = result_grps[-1]
+            line = f"{before_part}{snake_to_pascal(result)}{after_part}\n"
+
+    write_source.writelines(lines)
+
+    read_source.close()
+    write_source.close()
 
 
 def main() -> None:
     for _, file in enumerate(SRC_DIR.iterdir()):
-        stem = file.stem
-        classname = snake_to_pascal(stem)
-        # replace_symbol(file, file)
+        # stem = file.stem
+        # classname = snake_to_pascal(stem)
 
-        extension = get_extension(file.name)
-        new_file = Path(SRC_DIR, f"{classname}.{extension}")
-        _ = file.rename(new_file)
+        # extension = get_extension(file.name)
+        # new_file = Path(SRC_DIR, f"{classname}.{extension}")
+        # _ = file.rename(new_file)
+
+        replace_symbol(file)
 
 
 if __name__ == "__main__":
