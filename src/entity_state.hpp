@@ -1,8 +1,10 @@
 #pragma once
 
-namespace Simulacrum {
+namespace Simulacrum
+{
 
-    class EntityState {
+    class EntityState
+    {
     public:
         virtual void enter() = 0;
         virtual void update(float delta_time) = 0;
