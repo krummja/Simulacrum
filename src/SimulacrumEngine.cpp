@@ -146,13 +146,6 @@ namespace Simulacrum
       spdlog::error("Failed to get window logical size: {}", SDL_GetError());
     }
 
-    // renderer_.reset(SDL_CreateRenderer(window_.get(), NULL));
-
-    // if (!renderer_) {
-    //     spdlog::error("Failed to create renderer: {}", SDL_GetError());
-    //     return false;
-    // }
-
     spdlog::info("GPU rendering system online");
 
     // Unified VSync initialization with automatic fallback
