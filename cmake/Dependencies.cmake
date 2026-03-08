@@ -233,26 +233,6 @@ function(setup_project_dependencies)
         AUTO
     )
 
-    # SPIRV-Cross
-    # find_or_fetch_dependency(
-    #     SPIRV_cross
-    #     SPIRV_cross
-    #     "https://github.com/KhronosGroup/SPIRV-Cross"
-    #     "a0fba56c34a6700f1724bf9b751da5b488a3775c"
-    #     "external/SPIRV_cross-a0fba56"
-    #     AUTO
-    # )
-
-    # SDL_shadercross
-    # find_or_fetch_dependency(
-    #     SDL3_shadercross
-    #     SDL3_shadercross
-    #     "http://github.com/libsdl-org/SDL_shadercross"
-    #     "7b7365a86611b2a7b6462e521cf1c43a037d0970"
-    #     "external/SDL_shadercross-7b7365a"
-    #     AUTO
-    # )
-
     # GLM
     find_or_fetch_dependency(
         glm
@@ -283,4 +263,25 @@ function(setup_project_dependencies)
         "external/spdlog-1.15.3"
         STATIC  # Recommend static linking to avoid runtime dependencies
     )
+
+    # Catch2
+    find_or_fetch_dependency(
+        Catch2
+        Catch2
+        "https://github.com/catchorg/Catch2.git"
+        "v3.13.0"
+        "external/catch2-3.13.0"
+        AUTO
+    )
+
+    # Boost
+    # find_or_fetch_dependency(
+    #     Boost
+    #     Boost
+    #     "https://github.com/boostorg/boost.git"
+    #     "boost-1.90.0"
+    #     "external/boost-1.90.0"
+    #     AUTO
+    # )
+
 endfunction()

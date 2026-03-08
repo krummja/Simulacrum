@@ -68,7 +68,8 @@ namespace Simulacrum
       color_target.blend_state.enable_blend = false;
     }
 
-    color_target.blend_state.color_write_mask = SDL_GPU_COLORCOMPONENT_R |
+    color_target.blend_state.color_write_mask =
+      SDL_GPU_COLORCOMPONENT_R |
       SDL_GPU_COLORCOMPONENT_G |
       SDL_GPU_COLORCOMPONENT_B |
       SDL_GPU_COLORCOMPONENT_A;
@@ -163,7 +164,7 @@ namespace Simulacrum
 
     config.vertex_attributes[2].location = 2;
     config.vertex_attributes[2].buffer_slot = 0;
-    config.vertex_attributes[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+    config.vertex_attributes[2].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
     config.vertex_attributes[2].offset = sizeof(float) * 4;
 
     config.vertex_attribute_count = 3;
@@ -207,7 +208,7 @@ namespace Simulacrum
 
     config.vertex_buffer_count = 1;
 
-    // Vertex attributes: position, texcoord, color
+    // Vertex attributes: position, color
     config.vertex_attributes[0].location = 0;
     config.vertex_attributes[0].buffer_slot = 0;
     config.vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
@@ -230,7 +231,8 @@ namespace Simulacrum
   PipelineConfig GPUPipeline::createCompositeConfig(
     SDL_GPUShader* vert_shader,
     SDL_GPUShader* frag_shader,
-    SDL_GPUTextureFormat color_format)
+    SDL_GPUTextureFormat color_format
+  )
   {
     PipelineConfig config{};
 

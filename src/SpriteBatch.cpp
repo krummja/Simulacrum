@@ -175,28 +175,103 @@ namespace Simulacrum
     float texture_width,
     float texture_height
   )
-  {}
+  {
+    if (!initialized_)
+    {
+      spdlog::error("SpriteBatch::begin: not initialized");
+      return;
+    }
+
+    if (recording_)
+    {
+      spdlog::warn("SpriteBatch::begin: already recording, calling end()");
+      end();
+    }
+
+    write_ptr_ = write_ptr;
+    max_vertices_ = max_vertices;
+    texture_ = texture;
+    sampler_ = sampler;
+
+    texture_width_ = (texture_width > 0) ? texture_width : 1.0f;
+    texture_height_ = (texture_height > 0) ? texture_height : 1.0f;
+
+    sprite_count_ = 0;
+    vertex_count_ = 0;
+    recording_ = true;
+  }
 
   void SpriteBatch::draw(
-    float srcX, float srcY, float srcW, float srcH,
-    float dstX, float dstY, float dstW, float dstH,
+    float src_x, float src_y, float src_w, float src_h,
+    float dst_x, float dst_y, float dst_w, float dst_h,
     uint8_t r, uint8_t g, uint8_t b, uint8_t a
   )
-  {}
+  {
+    float u0 = src_x / texture_width_;
+    float v0 = src_y / texture_height_;
+    float u1 = (src_x + src_w) / texture_width_;
+    float v1 = (src_y + src_h) / texture_height_;
+
+    drawUV(u0, v0, u1, v1, dst_x, dst_y, dst_w, dst_h, r, g, b, a);
+  }
 
   void SpriteBatch::drawUV(
-    float srcX, float srcY, float srcW, float srcH,
-    float dstX, float dstY, float dstW, float dstH,
+    float u0, float v0, float u1, float v1,
+    float dst_x, float dst_y, float dst_w, float dst_h,
     uint8_t r, uint8_t g, uint8_t b, uint8_t a
   )
-  {}
+  {
+    if (!recording_)
+    {
+      return;
+    }
+
+    // Check capacity
+    if (vertex_count_ + VERTICES_PER_SPRITE > max_vertices_)
+    {
+      spdlog::warn("SpriteBatch: vertex capacity exceeded");
+      return;
+    }
+
+    if (sprite_count_ > MAX_SPRITES)
+    {
+      spdlog::warn("SpriteBatch: sprite capacity exceeded");
+      return;
+    }
+
+    float x0 = dst_x;
+    float y0 = dst_y;
+    float x1 = dst_x + dst_w;
+    float y1 = dst_y + dst_h;
+
+    addQuad(x0, y0, x1, y1, u0, v0, u1, v1, r, g, b, a);
+  }
 
   void SpriteBatch::addQuad(
     float x0, float y0, float x1, float y1,
     float u0, float v0, float u1, float v1,
     uint8_t r, uint8_t g, uint8_t b, uint8_t a
   )
-  {}
+  {
+    if (!write_ptr_)
+    {
+      return;
+    }
+
+    SpriteVertex* v = write_ptr_ + vertex_count_;
+
+    // Vertex 0: top-left
+    v[0] = {x0, y0, u0, v0, r, g, b, a};
+    // Vertex 1: top-right
+    v[1] = {x1, y0, u1, v0, r, g, b, a};
+    // Vertex 2: bottom-right
+    v[2] = {x1, y1, u1, v1, r, g, b, a};
+    // Vertex 3: bottom-left
+    v[3] = {x0, y1, u0, v1, r, g, b, a};
+
+    vertex_count_ += VERTICES_PER_SPRITE;
+    ++sprite_count_;
+  }
 
   size_t SpriteBatch::end()
   {
@@ -218,7 +293,7 @@ namespace Simulacrum
     SDL_GPUBuffer* vertex_buffer
   )
   {
-    if (!pass || !pipeline || !vertex_buffer || sprite_count_ == 0)
+    if (!pass || !pipeline || !vertex_buffer)
     {
       return;
     }
@@ -250,6 +325,8 @@ namespace Simulacrum
     // Issue indexed draw call
     uint32_t index_count = static_cast<uint32_t>(sprite_count_ * INDICES_PER_SPRITE);
     SDL_DrawGPUIndexedPrimitives(pass, index_count, 1, 0, 0, 0);
+
+    spdlog::debug("Drawing");
   }
 
 } // namespace Simulacrum

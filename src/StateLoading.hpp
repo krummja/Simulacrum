@@ -7,7 +7,6 @@
 
 namespace Simulacrum
 {
-
   class LoadingState : public State
   {
   public:
@@ -29,11 +28,12 @@ namespace Simulacrum
 
     void recordGPUVertices(GPURenderer& gpu_renderer, float interpolation_alpha) override;
 
+    void renderGPUScene(GPURenderer& gpu_renderer, SDL_GPURenderPass* scene_pass, float interpolation_alpha) override;
+
     void renderGPUUI(GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass) override;
 
   private:
     std::string target_state_name_;
-
   };
 
 } // namespace Simulacrum

@@ -1,9 +1,11 @@
 #include "ResourcePath.hpp"
 #include "GpuRenderer.hpp"
 #include "GpuShaderManager.hpp"
+#include "GpuUtils.hpp"
 #include <cstring>
 #include <format>
 #include <spdlog/spdlog.h>
+#include <glm/glm.hpp>
 
 namespace Simulacrum
 {
@@ -65,6 +67,8 @@ namespace Simulacrum
       return false;
     }
 
+    spdlog::debug("GPURenderer: Scene Texture created successfully");
+
     // Load shader and create pipelines
     if (!loadShaders())
     {
@@ -73,6 +77,8 @@ namespace Simulacrum
       return false;
     }
 
+    spdlog::debug("GPURenderer: Shaders created successfully");
+
     if (!createPipelines())
     {
       spdlog::error("GPURenderer: failed to create pipelines");
@@ -80,13 +86,35 @@ namespace Simulacrum
       return false;
     }
 
+    spdlog::debug("GPURenderer: Pipelines created successfully");
+
     // Initialize vertex pools
-    if (!primitive_vertex_pool_.init(device_, sizeof(ColorVertex), 300000))
+    if (!sprite_vertex_pool_.init(device_, sizeof(SpriteVertex), 300000))
+    {
+      spdlog::error("GPURenderer: failed to init sprite vertex pool");
+      cleanupPartialInit();
+      return false;
+    }
+
+    spdlog::debug("GPURenderer: sprite vertex pool initialized");
+
+    if (!entity_vertex_pool_.init(device_, sizeof(SpriteVertex), 1000))
+    {
+      spdlog::error("GPURenderer: failed to init entity vertex pool");
+      cleanupPartialInit();
+      return false;
+    }
+
+    spdlog::debug("GPURenderer: entity vertex pool initialized");
+
+    if (!primitive_vertex_pool_.init(device_, sizeof(ColorVertex), 10000))
     {
       spdlog::error("GPURenderer: failed to init primitive vertex pool");
       cleanupPartialInit();
       return false;
     }
+
+    spdlog::debug("GPURenderer: primitive vertex pool initialized");
 
     if (!ui_vertex_pool_.init(device_, sizeof(SpriteVertex), 4000))
     {
@@ -95,6 +123,9 @@ namespace Simulacrum
       return false;
     }
 
+    spdlog::debug("GPURenderer: ui vertex pool initialized");
+
+    // Initialize sprite batches
     if (!sprite_batch_.init(device_))
     {
       spdlog::error("GPURenderer: failed to init sprite batch");
@@ -116,13 +147,21 @@ namespace Simulacrum
 
     // Release sprite batches
     sprite_batch_.shutdown();
+    entity_batch_.shutdown();
 
     // Release vertex pools
+    sprite_vertex_pool_.shutdown();
+    entity_vertex_pool_.shutdown();
+    // particle vertex pool
     primitive_vertex_pool_.shutdown();
     ui_vertex_pool_.shutdown();
 
     // Release pipelines
+    sprite_opaque_pipeline_.release();
+    sprite_alpha_pipeline_.release();
+    // particle pipeline
     primitive_pipeline_.release();
+    composite_pipeline_.release();
     ui_sprite_pipeline_.release();
     ui_primitive_pipeline_.release();
 
@@ -144,13 +183,21 @@ namespace Simulacrum
   void GPURenderer::cleanupPartialInit()
   {
     sprite_batch_.shutdown();
+    entity_batch_.shutdown();
 
     // Release vertex pools
+    sprite_vertex_pool_.shutdown();
+    entity_vertex_pool_.shutdown();
+    // particle vertex pool
     primitive_vertex_pool_.shutdown();
     ui_vertex_pool_.shutdown();
 
     // Release pipelines
+    sprite_opaque_pipeline_.release();
+    sprite_alpha_pipeline_.release();
+    // particle pipeline
     primitive_pipeline_.release();
+    composite_pipeline_.release();
     ui_sprite_pipeline_.release();
     ui_primitive_pipeline_.release();
 
@@ -260,7 +307,7 @@ namespace Simulacrum
     // Begin scene render pass
     SDL_GPUColorTargetInfo color_target = scene_texture_->asColorTarget(
       SDL_GPU_LOADOP_CLEAR,
-      { 0.95f, 0.02f, 0.30f, 1.0f }
+      { 1.0f, 0.0f, 1.0f, 1.0f }
     );
 
     current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);
@@ -416,16 +463,18 @@ namespace Simulacrum
   {
     if (!pass || !view_projection)
     {
+      spdlog::error("GPURenderer::pushViewProjection: missing render pass or view projection");
       return;
     }
 
-    SDL_PushGPUVertexUniformData(command_buffer_, 0, view_projection, sizeof(float) & 16);
+    SDL_PushGPUVertexUniformData(command_buffer_, 0, view_projection, sizeof(float) * 16);
   }
 
-  void GPURenderer::pushCompositeUniforms(SDL_GPURenderPass* pass, float subpixelX, float subpixelY, float zoom)
+  void GPURenderer::pushCompositeUniforms(SDL_GPURenderPass* pass, float zoom, float subpixelX, float subpixelY)
   {
     if (!pass)
     {
+      spdlog::error("GPURenderer::pushCompositeUniforms: missing render pass");
       return;
     }
 
@@ -449,6 +498,7 @@ namespace Simulacrum
   {
     if (!pass || !scene_texture_ || !scene_texture_->isValid())
     {
+      spdlog::error("GPURenderer::renderComposite: missing pass or scene texture");
       return;
     }
 
@@ -462,7 +512,7 @@ namespace Simulacrum
     SDL_BindGPUFragmentSamplers(pass, 0, &tex_sampler, 1);
 
     // Push composite uniforms (using stored params)
-    pushCompositeUniforms(pass, composite_subpixel_x_, composite_subpixel_y_, composite_zoom_);
+    pushCompositeUniforms(pass, composite_zoom_, composite_subpixel_x_, composite_subpixel_y_);
 
     // Draw fullscreen triangle (3 vertices, no vertex buffer needed)
     // The composite vertex shader uses gl_VertexIndex to generate positions
@@ -549,6 +599,39 @@ namespace Simulacrum
     const std::string composite_vert = ResourcePath::resolve("res/shaders/composite.vert");
     const std::string composite_frag = ResourcePath::resolve("res/shaders/composite.frag");
 
+    // Sprite opaque pipeline (renders to scene texture)
+    {
+      auto config = GPUPipeline::createSpriteConfig(
+        shader_manager.getShader(sprite_vert),
+        shader_manager.getShader(sprite_frag),
+        scene_format,
+        false  // opaque
+      );
+
+      if (!sprite_opaque_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "sprite opaque");
+        return false;
+      }
+    }
+
+    // Sprite alpha pipeline (renders to scene texture)
+    {
+      auto config = GPUPipeline::createSpriteConfig(
+        shader_manager.getShader(sprite_vert),
+        shader_manager.getShader(sprite_frag),
+        scene_format,
+        true  // alpha
+      );
+
+      if (!sprite_alpha_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "sprite alpha");
+        return false;
+      }
+    }
+
+    // Primitive pipeline (renders to scene texture, uses color shaders)
     {
       auto config = GPUPipeline::createPrimitiveConfig(
         shader_manager.getShader(color_vert),
@@ -563,6 +646,7 @@ namespace Simulacrum
       }
     }
 
+    // Composite pipelone (renders to swapchain)
     {
       auto config = GPUPipeline::createCompositeConfig(
         shader_manager.getShader(composite_vert),
@@ -577,6 +661,7 @@ namespace Simulacrum
       }
     }
 
+    // UI sprite pipeline (renders to swapchain for text/icons)
     {
       auto config = GPUPipeline::createSpriteConfig(
         shader_manager.getShader(sprite_vert),
@@ -587,11 +672,12 @@ namespace Simulacrum
 
       if (!ui_sprite_pipeline_.create(device_, config))
       {
-        spdlog::error("Failed to create {} pipeline", "ui_sprite");
+        spdlog::error("Failed to create {} pipeline", "ui sprite");
         return false;
       }
     }
 
+    // UI primitive pipeline (renders to swapchain for UI backgrounds, uses color shaders)
     {
       auto config = GPUPipeline::createPrimitiveConfig(
         shader_manager.getShader(color_vert),
@@ -601,7 +687,7 @@ namespace Simulacrum
 
       if (!ui_primitive_pipeline_.create(device_, config))
       {
-        spdlog::error("Failed to create {} pipeline", "ui_primitive");
+        spdlog::error("Failed to create {} pipeline", "ui primitive");
         return false;
       }
     }
@@ -628,6 +714,7 @@ namespace Simulacrum
       return false;
     }
 
+    spdlog::debug("Scene texture created: {}x{}", scene_width, scene_height);
     return true;
   }
 

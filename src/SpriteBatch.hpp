@@ -72,28 +72,28 @@ namespace Simulacrum
     );
 
     /// @brief Draw a sprite from atlas coordinates.
-    /// @param srcX Source X in texture (pixels)
-    /// @param srcY Source Y in texture (pixels)
-    /// @param srcW Source width (pixels)
-    /// @param srcH Source height (pixels)
-    /// @param dstX Destination X (world/screen coordinates)
-    /// @param dstY Destination Y (world/screen coordinates)
-    /// @param dstW Destination width
-    /// @param dstH Destination height
+    /// @param src_x Source X in texture (pixels)
+    /// @param src_y Source Y in texture (pixels)
+    /// @param src_w Source width (pixels)
+    /// @param src_h Source height (pixels)
+    /// @param dst_x Destination X (world/screen coordinates)
+    /// @param dst_y Destination Y (world/screen coordinates)
+    /// @param dst_w Destination width
+    /// @param dst_h Destination height
     /// @param r Red tint (0-255)
     /// @param g Green tint (0-255)
     /// @param b Blue tint (0-255)
     /// @param a Alpha (0-255)
     void draw(
-      float srcX, float srcY, float srcW, float srcH,
-      float dstX, float dstY, float dstW, float dstH,
+      float src_x, float src_y, float src_w, float src_h,
+      float dst_x, float dst_y, float dst_w, float dst_h,
       uint8_t r = 255, uint8_t g = 255, uint8_t b = 255, uint8_t a = 255
     );
 
     /// @brief Draw a sprite using normalized texture coordinates.
     void drawUV(
-      float srcX, float srcY, float srcW, float srcH,
-      float dstX, float dstY, float dstW, float dstH,
+      float u0, float v0, float u1, float v1,
+      float dst_x, float dst_y, float dst_w, float dst_h,
       uint8_t r = 255, uint8_t g = 255, uint8_t b = 255, uint8_t a = 255
     );
 

@@ -90,7 +90,7 @@ namespace Simulacrum {
       if (!isValid()) {
         return "EntityHandle::INVALID";
       }
-      return std::format("EntityHandle({}:{}:{})", id, kind, generation);
+      return std::format("EntityHandle({}:{})", id, generation);
     }
   };
 

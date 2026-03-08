@@ -85,6 +85,12 @@ namespace Simulacrum
     static constexpr uint32_t DEFERRED = 0;
   };
 
+  struct EventThreadingInfo
+  {
+    size_t worker_count{0};
+    size_t available_workers{0};
+    size_t budget{0};
 
+  };
 
 } // namespace Simulacrum

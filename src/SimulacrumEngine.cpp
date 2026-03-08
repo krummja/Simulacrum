@@ -10,6 +10,7 @@
 #include "ResourcePath.hpp"
 #include "ThreadSystem.hpp"
 #include "StateManager.hpp"
+#include "UIManager.hpp"
 
 #include "StateLoading.hpp"
 
@@ -40,14 +41,14 @@ namespace Simulacrum
     spdlog::info("SDL video online");
 
     // Initialize resource path resolver
-    Simulacrum::ResourcePath::init();
+    ResourcePath::init();
 
     constexpr int DEFAULT_WIDTH = 1280;
     constexpr int DEFAULT_HEIGHT = 720;
 
     spdlog::info("Loading settings");
-    const std::string settings_path = Simulacrum::ResourcePath::resolve("res/settings.json");
-    auto& settings_manager = Simulacrum::SettingsManager::Instance();
+    const std::string settings_path = ResourcePath::resolve("res/settings.json");
+    auto& settings_manager = SettingsManager::Instance();
     settings_manager.loadFromFile(settings_path);
 
     auto& graphics_settings = settings_manager.getGraphicsSettings();
@@ -107,11 +108,11 @@ namespace Simulacrum
     spdlog::info("Window creation system online");
 
     // Initialize GPU device and renderer
-    auto& gpu_device = Simulacrum::GPUDevice::Instance();
+    auto& gpu_device = GPUDevice::Instance();
 
     if (gpu_device.init(window_.get()))
     {
-      auto& gpu_renderer = Simulacrum::GPURenderer::Instance();
+      auto& gpu_renderer = GPURenderer::Instance();
       if (gpu_renderer.init())
       {
         spdlog::info("SDL3_GPU rendering initialized successfully");
@@ -149,7 +150,7 @@ namespace Simulacrum
     spdlog::info("GPU rendering system online");
 
     // Unified VSync initialization with automatic fallback
-    auto& settings = Simulacrum::SettingsManager::Instance();
+    auto& settings = SettingsManager::Instance();
     bool vsync_requested = settings.getGraphicsSettings().vsync;
     vsync_requested_ = vsync_requested;
 
@@ -159,7 +160,7 @@ namespace Simulacrum
     );
 
     // Create TimestepManager (uses default 60 FPS target and 1/60s fixed timestep)
-    timestep_manager_ = std::make_unique<Simulacrum::TimestepManager>();
+    timestep_manager_ = std::make_unique<TimestepManager>();
 
     // bool vsync_set_successfully = SDL_SetRenderVSync(
     //     renderer_.get(),
@@ -239,7 +240,7 @@ namespace Simulacrum
     init_tasks.reserve(12);  // reserve capacity for typical number of init tasks
 
     init_tasks.push_back(
-      Simulacrum::ThreadSystem::Instance().enqueueTaskWithResult(
+      ThreadSystem::Instance().enqueueTaskWithResult(
         []() -> bool
         {
           InputManager& input_manager = InputManager::Instance();
@@ -274,9 +275,19 @@ namespace Simulacrum
 
     state_manager_ = std::make_unique<StateManager>();
 
-    state_manager_->addState(std::make_unique<LoadingState>());
+    // UIManager
+    UIManager& ui_mgr = UIManager::Instance();
+    if (!ui_mgr.init())
+    {
+      spdlog::critical("Failed to initialize UI Manager");
+      return false;
+    }
 
-    // TODO UI Manager
+    spdlog::debug("UI Manager initialized successfully");
+
+    // Load states
+
+    state_manager_->addState(std::make_unique<LoadingState>());
 
     bool all_tasks_succeeded = true;
 
@@ -382,17 +393,15 @@ namespace Simulacrum
 
   void SimulacrumEngine::update(float delta_time)
   {
-
     state_manager_->setCurrentFPS(timestep_manager_->getCurrentFPS());
     state_manager_->update(delta_time);
-
   }
 
   void SimulacrumEngine::render()
   {
     float interpolation_alpha = static_cast<float>(timestep_manager_->getInterpolationAlpha());
 
-    auto& gpu_renderer = Simulacrum::GPURenderer::Instance();
+    auto& gpu_renderer = GPURenderer::Instance();
     gpu_renderer.beginFrame();
 
     state_manager_->recordGPUVertices(gpu_renderer, interpolation_alpha);
@@ -409,15 +418,17 @@ namespace Simulacrum
     if (swapchain_pass)
     {
       gpu_renderer.renderComposite(swapchain_pass);
-      state_manager_->renderGPUUI(gpu_renderer, swapchain_pass);
     }
 
-    // Note: endFrame() called in present() to separate render/vsync timing
+    if (swapchain_pass)
+    {
+      state_manager_->renderGPUUI(gpu_renderer, swapchain_pass);
+    }
   }
 
   void SimulacrumEngine::present()
   {
-    Simulacrum::GPURenderer::Instance().endFrame();
+    GPURenderer::Instance().endFrame();
   }
 
   void SimulacrumEngine::processBackgroundTasks()
@@ -450,14 +461,10 @@ namespace Simulacrum
     // auto renderer_to_destroy = std::move(renderer_);
 
     spdlog::info("Shutting down GPU renderer...");
-    Simulacrum::GPURenderer::Instance().shutdown();
+    GPURenderer::Instance().shutdown();
 
     spdlog::info("Shutting down GPU device...");
-    Simulacrum::GPUDevice::Instance().shutdown();
-
-    // spdlog::info("Destroying renderer...");
-    // renderer_to_destroy.reset();
-    // spdlog::info("Renderer destroyed successfully");
+    GPUDevice::Instance().shutdown();
 
     spdlog::info("Destroying window...");
     window_to_destroy.reset();

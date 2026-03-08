@@ -4,6 +4,7 @@
 #include "StateManager.hpp"
 #include "GpuRenderer.hpp"
 #include "GpuTypes.hpp"
+#include "UIManager.hpp"
 
 #include <format>
 
@@ -18,6 +19,10 @@ namespace Simulacrum
   bool LoadingState::enter()
   {
     spdlog::debug("Entering Loading State");
+
+    auto& ui = UIManager::Instance();
+    ui.createPanel("panel-1", {-1, 0, 300, 300});
+
     return true;
   }
 
@@ -35,30 +40,24 @@ namespace Simulacrum
   {
     (void)interpolation_alpha;
 
-    auto& vertex_pool = gpu_renderer.getPrimitiveVertexPool();
-
-    // The mapped pointer on the vertex pool is created in GPUVertexPool::beginFrame()
-    // During GPURenderer::beginScenePass(), the vertex pool's upload method is called
-    // using the scene copy pass. This uploads the contents of the mapped pointer to
-    // the GPU.
-    auto* write_ptr = static_cast<ColorVertex*>(vertex_pool.getMappedPtr());
-
-    if (!write_ptr)
-    {
-      return;
-    }
-
-    ColorVertex* v = write_ptr;
-    // Vertex 0: top-left
-    v[0] = { 0.0f, 0.0f, 255, 255, 255, 255 };
-    // Vertex 1: top-right
-    v[1] = { 100.0f, 0.0f, 255, 255, 255, 255 };
-    // Vertex 2: bottom-right
-    v[2] = { 100.0f, 100.0f, 255, 255, 255, 255 };
-    // Vertex 3: bottom-left
-    v[3] = { 0.0f, 100.0f, 255, 255, 255, 255 };
+    auto& ui = UIManager::Instance();
+    ui.recordGPUVertices(gpu_renderer);
   }
 
-  void LoadingState::renderGPUUI(GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass) {}
+  void LoadingState::renderGPUScene(
+    GPURenderer& gpu_renderer,
+    SDL_GPURenderPass* scene_pass,
+    float interpolation_alpha
+  )
+  {}
+
+  void LoadingState::renderGPUUI(
+    GPURenderer& gpu_renderer,
+    SDL_GPURenderPass* swapchain_pass
+  )
+  {
+    auto& ui = UIManager::Instance();
+    ui.renderGPU(gpu_renderer, swapchain_pass);
+  }
 
 } // namespace Simulacrum

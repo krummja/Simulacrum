@@ -75,6 +75,27 @@ target_include_directories(${EXECUTABLE_TARGET}
                 ${PROJECT_SOURCE_DIR}/src
 )
 
+list(FILTER SOURCES EXCLUDE REGEX ".*SimulacrumMain\\.cpp$")
+foreach(source ${SOURCES})
+        message(STATUS ${source})
+endforeach()
+add_executable(SimulacrumTests "tests/test.cpp" ${SOURCES})
+
+target_link_libraries(SimulacrumTests
+        PUBLIC
+                SDL3::SDL3
+                spdlog::spdlog
+                glm::glm
+                nlohmann_json::nlohmann_json
+        PRIVATE
+                Catch2::Catch2WithMain
+)
+
+target_include_directories(SimulacrumTests
+        PRIVATE
+                ${PROJECT_SOURCE_DIR}/src
+)
+
 # ==============================================
 # Application configuration
 # ==============================================

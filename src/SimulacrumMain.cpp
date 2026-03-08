@@ -1,8 +1,21 @@
 #include "ThreadSystem.hpp"
-#include "SimulacrumEngine.hpp"
 #include "TimestepManager.hpp"
-#include "ResourcePath.hpp"
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
+#include "SDL3/SDL_video.h"
 
+#include "SimulacrumEngine.hpp"
+#include "GpuDevice.hpp"
+#include "GpuRenderer.hpp"
+#include "ResourcePath.hpp"
+#include "ThreadSystem.hpp"
+
+#include <cstdlib>
+#include <format>
+#include <future>
+#include <string>
+#include <string_view>
+#include <vector>
 #include <array>
 #include <chrono>
 #include <format>
@@ -12,6 +25,28 @@
 
 constexpr std::string_view APPLICATION_NAME{ "Simulacrum" };
 
+
+bool initialize_thread_system()
+{
+  Simulacrum::ThreadSystem& thread_system = Simulacrum::ThreadSystem::Instance();
+
+  try
+  {
+    if (!thread_system.init())
+    {
+      spdlog::critical("Failed to initialized thread system");
+      return false;
+    }
+  }
+
+  catch (const std::exception& exc)
+  {
+    spdlog::critical("Exception during thread system initialization: {}", exc.what());
+    return false;
+  }
+
+  return true;
+}
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
@@ -24,21 +59,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
   bool res_exists = Simulacrum::ResourcePath::exists("Debug");
   spdlog::info("Resource directory exist: {}", res_exists);
 
-  Simulacrum::ThreadSystem& thread_system = Simulacrum::ThreadSystem::Instance();
-
-  try
+  if (!initialize_thread_system())
   {
-    if (!thread_system.init())
-    {
-      spdlog::critical("Failed to initialized thread system");
-      return -1;
-    }
-  }
-  catch (const std::exception& exc)
-  {
-    spdlog::critical("Exception during thread system initialization: {}", exc.what());
     return -1;
   }
+
+  // Engine
 
   Simulacrum::SimulacrumEngine& engine = Simulacrum::SimulacrumEngine::Instance();
 
@@ -54,11 +80,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
   Simulacrum::TimestepManager ts = Simulacrum::TimestepManager();
 
-  ts.startFrame();
-  spdlog::info("Current FPS: {}", ts.getCurrentFPS());
-  ts.endFrame();
-
-  spdlog::info("Starting main loop");
 
   while (engine.isRunning())
   {
@@ -68,10 +89,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     while (ts.shouldUpdate())
     {
-
       engine.update(ts.getUpdateDeltaTime());
-
     }
+
+    Simulacrum::GPURenderer::Instance().setCompositeParams(-1.0f, 0.0f, 0.0f);
 
     engine.render();
 
