@@ -203,6 +203,26 @@ function(setup_project_dependencies)
         AUTO  # Use global BUILD_SHARED_LIBS settings
     )
 
+    # SPIRV-Cross
+    find_or_fetch_dependency(
+        SPIRV-cross
+        SPIRV-cross
+        "https://github.com/KhronosGroup/SPIRV-Cross.git"
+        "MoltenVK-1.1.5"
+        "external/SPIRV-cross-MoltenVK-1.1.5"
+        AUTO
+    )
+
+    # SDL_shadercross
+    find_or_fetch_dependency(
+        SDL3_shadercross
+        SDL3_shadercross
+        "https://github.com/libsdl-org/SDL_shadercross.git"
+        "3a314481ede01f5d966f0e834019942e34c02b82"
+        "external/SDL_shadercross-3a31448"
+        AUTO
+    )
+
     # SDL3_image
     find_or_fetch_dependency(
         SDL3_image
@@ -273,15 +293,5 @@ function(setup_project_dependencies)
         "external/catch2-3.13.0"
         AUTO
     )
-
-    # Boost
-    # find_or_fetch_dependency(
-    #     Boost
-    #     Boost
-    #     "https://github.com/boostorg/boost.git"
-    #     "boost-1.90.0"
-    #     "external/boost-1.90.0"
-    #     AUTO
-    # )
 
 endfunction()

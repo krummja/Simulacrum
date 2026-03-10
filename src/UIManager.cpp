@@ -220,7 +220,7 @@ namespace Simulacrum
         primitive_offset += 6;
       };
 
-    auto addTextureRect = [&](const UIRect& rect, const std::string& texture_id)
+    auto addTextureRect = [&](const std::string& texture_id, int x, int y, int w, int h)
       {
         if (ui_offset + 4 > GPU_UI_VERTEX_LIMIT) return;
 
@@ -231,17 +231,21 @@ namespace Simulacrum
         float tex_width = texture_data->width;
         float tex_height = texture_data->height;
 
-        float x = static_cast<float>(rect.x);
-        float y = static_cast<float>(rect.y);
-        float w = static_cast<float>(rect.width);
-        float h = static_cast<float>(rect.height);
+        float sx = static_cast<float>(x);
+        float sy = static_cast<float>(y);
+        float sw = static_cast<float>(w);
+        float sh = static_cast<float>(h);
 
         SpriteVertex* v = ui_base + ui_offset;
 
-        v[0] = { x, y, 0.0f, 0.0f, 255, 0, 0, 255 };
-        v[1] = { x + w, y, 1.0f, 0.0f, 255, 0, 0, 255 };
-        v[2] = { x + w, y + h, 1.0f, 1.0f, 255, 0, 0, 255 };
-        v[3] = { x, y + h, 0.0f, 1.0f, 255, 0, 0, 255 };
+        // Top-left
+        v[0] = {sx, sy, 0.0f, 0.0f, 255, 255, 255, 255};
+        // Top-right
+        v[1] = {sx + sw, sy, 1.0f, 0.0f, 255, 255, 255, 255};
+        // Bottom-right
+        v[2] = {sx + sw, sy + sh, 1.0f, 1.0f, 255, 255, 255, 255};
+        // Bottom-left
+        v[3] = {sx, sy + sh, 0.0f, 1.0f, 255, 255, 255, 255};
 
         auto tex = (texture_data->texture->get());
 
@@ -268,7 +272,13 @@ namespace Simulacrum
         addFilledRect(component->bounds, bg_color);
         break;
       case UIComponentType::IMAGE:
-        addTextureRect(component->bounds, component->texture_id);
+        addTextureRect(
+          component->texture_id,
+          component->bounds.x,
+          component->bounds.y,
+          component->bounds.width,
+          component->bounds.height
+        );
         break;
       }
     }
@@ -279,7 +289,7 @@ namespace Simulacrum
 
   void UIManager::renderGPU(GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass)
   {
-    if (!swapchain_pass) return;
+    if (!swapchain_pass || gpu_image_commands.empty()) return;
 
     float ortho_matrix[16];
     GPURenderer::createOrthoMatrix(
@@ -337,10 +347,11 @@ namespace Simulacrum
       {
         SDL_GPUTextureSamplerBinding tex_sampler{};
         tex_sampler.texture = cmd.texture;
-
-        tex_sampler.sampler = gpu_renderer.getNearestSampler();
+        tex_sampler.sampler = gpu_renderer.getLinearSampler();
         SDL_BindGPUFragmentSamplers(swapchain_pass, 0, &tex_sampler, 1);
 
+        // Draw this sprite (6 indices per quad)
+        // first_index = (vertex_offset / 4) * 6 because index buffer has 6 indices per 4 vertices
         uint32_t first_index = (cmd.vertex_offset / 4) * 6;
         SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
       }

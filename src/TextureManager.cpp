@@ -173,16 +173,13 @@ namespace Simulacrum
       height
       });
 
-    spdlog::debug("GPU texture queued for upload: {} ({}x{})", texture_id, width, height);
+    // spdlog::debug("GPU texture queued for upload: {} ({}x{})", texture_id, width, height);
     return true;
   }
 
   void TextureManager::processPendingUploads(SDL_GPUCopyPass* copy_pass)
   {
-    if (!copy_pass || pending_uploads_.empty())
-    {
-      return;
-    }
+    if (!copy_pass || pending_uploads_.empty()) return;
 
     std::lock_guard<std::mutex> lock(gpu_texture_mutex_);
 
@@ -249,7 +246,7 @@ namespace Simulacrum
       dst_region.d = 1;
 
       SDL_UploadToGPUTexture(copy_pass, &src_info, &dst_region, false);
-      spdlog::debug("GPU texture uploaded: {} ({}x{})", pending.texture_id, pending.width, pending.height);
+      // spdlog::debug("GPU texture uploaded: {} ({}x{})", pending.texture_id, pending.width, pending.height);
     }
 
     pending_uploads_.clear();
@@ -265,6 +262,7 @@ namespace Simulacrum
       return it->second.texture.get();
     }
 
+    spdlog::warn("No GPU texture found with id: {}", texture_id);
     return nullptr;
   }
 
@@ -278,7 +276,7 @@ namespace Simulacrum
       return &it->second;
     }
 
-    spdlog::warn("No texture data - returning null pointer");
+    spdlog::warn("No texture data for id: {} - returning null pointer", texture_id);
     return nullptr;
   }
 

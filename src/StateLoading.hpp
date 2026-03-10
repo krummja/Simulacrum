@@ -5,6 +5,9 @@
 #include <future>
 #include <string>
 
+// Forward reference
+struct SDL_GPUTexture;
+
 namespace Simulacrum
 {
   class LoadingState : public State
@@ -34,6 +37,16 @@ namespace Simulacrum
 
   private:
     std::string target_state_name_;
+
+    struct GPUDrawCommand
+    {
+      SDL_GPUTexture* texture{nullptr};
+      uint32_t vertex_offset{0};
+      uint32_t vertex_count{0};
+    };
+
+    std::vector<GPUDrawCommand> primitive_commands_;
+    std::vector<GPUDrawCommand> image_commands_;
   };
 
 } // namespace Simulacrum

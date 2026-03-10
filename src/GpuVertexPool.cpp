@@ -56,6 +56,11 @@ namespace Simulacrum
       return false;
     }
 
+    spdlog::info(
+      "GPUVertexPool initialized: {} vertices x {} bytes = {} KB",
+      max_vertices, vertex_size, buffer_size / 1024
+    );
+
     return true;
   }
 
@@ -63,7 +68,10 @@ namespace Simulacrum
   {
     gpu_buffer_ = GPUBuffer();
 
-    std::generate(transfer_buffers_.begin(), transfer_buffers_.end(), []() { return GPUTransferBuffer(); });
+    std::generate(
+      transfer_buffers_.begin(), transfer_buffers_.end(),
+      []() { return GPUTransferBuffer(); }
+    );
 
     device_ = nullptr;
     frame_index_ = 0;

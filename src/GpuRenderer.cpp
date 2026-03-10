@@ -2,6 +2,7 @@
 #include "GpuRenderer.hpp"
 #include "GpuShaderManager.hpp"
 #include "GpuUtils.hpp"
+#include "TextureManager.hpp"
 #include <cstring>
 #include <format>
 #include <spdlog/spdlog.h>
@@ -262,6 +263,8 @@ namespace Simulacrum
     }
 
     // Begin vertex pool frames (maps transfer buffers)
+    sprite_vertex_pool_.beginFrame();
+    entity_vertex_pool_.beginFrame();
     primitive_vertex_pool_.beginFrame();
     ui_vertex_pool_.beginFrame();
 
@@ -279,9 +282,10 @@ namespace Simulacrum
     if (copy_pass_)
     {
       // Process pending texture uploads.
-      // TODO
+      TextureManager::Instance().processPendingUploads(copy_pass_);
 
       // End vertex pool frames (unmaps buffers for upload)
+      // Use SpriteBatch count if available, otherwise us pending count from direct writes
       size_t sprite_vertex_count = sprite_batch_.getVertexCount();
       if (sprite_vertex_count == 0)
       {
@@ -289,14 +293,25 @@ namespace Simulacrum
       }
       sprite_vertex_pool_.endFrame(sprite_vertex_count);
 
+      // End entity vertex pool (uses entity batch count or pending count)
+      size_t entity_vertex_count = entity_batch_.getVertexCount();
+      if (entity_vertex_count == 0)
+      {
+        entity_vertex_count = entity_vertex_pool_.getPendingVertexCount();
+      }
+      entity_vertex_pool_.endFrame(entity_vertex_count);
+
+      // End primitive vertex pool (uses pending count from UIManager writes)
       size_t primitive_vertex_count = primitive_vertex_pool_.getPendingVertexCount();
       primitive_vertex_pool_.endFrame(primitive_vertex_count);
 
+      // End of UI vertex pool (uses pending count from direct writes)
       size_t ui_vertex_count = ui_vertex_pool_.getPendingVertexCount();
       ui_vertex_pool_.endFrame(ui_vertex_count);
 
       // Upload vertex data
       sprite_vertex_pool_.upload(copy_pass_);
+      entity_vertex_pool_.upload(copy_pass_);
       primitive_vertex_pool_.upload(copy_pass_);
       ui_vertex_pool_.upload(copy_pass_);
 
@@ -483,6 +498,10 @@ namespace Simulacrum
     ubo.subPixelOffsetY = subpixelY;
     ubo.zoom = zoom;
     ubo._pad0 = 0.0f;
+    ubo._pad1 = 0.0f;
+    ubo._pad2 = 0.0f;
+    ubo._pad3 = 0.0f;
+    ubo._pad4 = 0.0f;
 
     SDL_PushGPUFragmentUniformData(command_buffer_, 0, &ubo, sizeof(CompositeUBO));
   }
@@ -545,42 +564,56 @@ namespace Simulacrum
     color_vert_info.num_uniform_buffers = 1;
 
     ShaderInfo color_frag_info{};
+    // No samplers or uniforms
 
     ShaderInfo composite_vert_info{};
+    // No vertex uniform - composite uses fragment uniforms only
 
     ShaderInfo composite_frag_info{};
     composite_frag_info.num_samplers = 1;
-    composite_frag_info.num_uniform_buffers = 1;  // CompositeUBO
+    composite_frag_info.num_uniform_buffers = 1;
 
-    if (!shader_manager.loadShader(ResourcePath::resolve("res/shaders/sprite.vert"), SDL_GPU_SHADERSTAGE_VERTEX, sprite_vert_info))
-    {
-      return false;
-    }
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/sprite.vert"),
+        SDL_GPU_SHADERSTAGE_VERTEX,
+        sprite_vert_info
+      )) return false;
 
-    if (!shader_manager.loadShader(ResourcePath::resolve("res/shaders/sprite.frag"), SDL_GPU_SHADERSTAGE_FRAGMENT, sprite_frag_info))
-    {
-      return false;
-    }
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/sprite.frag"),
+        SDL_GPU_SHADERSTAGE_FRAGMENT,
+        sprite_frag_info
+      )) return false;
 
-    if (!shader_manager.loadShader(ResourcePath::resolve("res/shaders/color.vert"), SDL_GPU_SHADERSTAGE_VERTEX, color_vert_info))
-    {
-      return false;
-    }
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/color.vert"),
+        SDL_GPU_SHADERSTAGE_VERTEX,
+        color_vert_info
+      )) return false;
 
-    if (!shader_manager.loadShader(ResourcePath::resolve("res/shaders/color.frag"), SDL_GPU_SHADERSTAGE_FRAGMENT, color_frag_info))
-    {
-      return false;
-    }
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/color.frag"),
+        SDL_GPU_SHADERSTAGE_FRAGMENT,
+        color_frag_info
+      )) return false;
 
-    if (!shader_manager.loadShader(ResourcePath::resolve("res/shaders/composite.vert"), SDL_GPU_SHADERSTAGE_VERTEX, composite_vert_info))
-    {
-      return false;
-    }
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/composite.vert"),
+        SDL_GPU_SHADERSTAGE_VERTEX,
+        composite_vert_info
+      )) return false;
 
-    if (!shader_manager.loadShader(ResourcePath::resolve("res/shaders/composite.frag"), SDL_GPU_SHADERSTAGE_FRAGMENT, composite_frag_info))
-    {
-      return false;
-    }
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/composite.frag"),
+        SDL_GPU_SHADERSTAGE_FRAGMENT,
+        composite_frag_info
+      )) return false;
 
     return true;
   }

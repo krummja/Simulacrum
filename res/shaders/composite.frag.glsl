@@ -10,6 +10,10 @@ layout(set = 3, binding = 0, std140) uniform CompositeUBO {
     vec2 subPixelOffset;
     float zoom;
     float _pad0;
+    float _pad1;
+    float _pad2;
+    float _pad3;
+    float _pad4;
 } compositeUbo;
 
 void main() {

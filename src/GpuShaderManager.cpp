@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <spdlog/spdlog.h>
+#include <SDL3_shadercross/SDL_shadercross.h>
 
 namespace Simulacrum
 {

@@ -30,12 +30,19 @@ namespace Simulacrum
   };
 
   /// @brief Composite uniform buffer data.
+  ///
   struct CompositeUBO
   {
-    float subPixelOffsetX;
-    float subPixelOffsetY;
-    float zoom;
-    float _pad0;
+    float subPixelOffsetX;  // Subpixel Offset X (4 bytes)
+    float subPixelOffsetY;  // Subpixel Offset Y (4 bytes)
+    float zoom;             // Zoom (4 bytes)
+    // Subtotal: 12 bytes
+    float _pad0;            // (+4 bytes)
+    float _pad1;            // (+4 bytes)
+    float _pad2;            // (+4 bytes)
+    float _pad3;            // (+4 bytes)
+    float _pad4;            // (+4 bytes)
+    // Total: 32 bytes
   };
 
 } // engine::render
