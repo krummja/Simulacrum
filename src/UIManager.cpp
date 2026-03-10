@@ -7,6 +7,7 @@
 #include "GpuVertexPool.hpp"
 #include "GpuTypes.hpp"
 #include "SpriteBatch.hpp"
+#include "TextureManager.hpp"
 
 #include <algorithm>
 #include <format>
@@ -82,6 +83,18 @@ namespace Simulacrum
     component->type = UIComponentType::PANEL;
     component->bounds = bounds;
     component->z_order = UIConstants::ZORDER_PANEL;
+
+    components_[id] = component;
+  }
+
+  void UIManager::createImage(const std::string& id, const UIRect& bounds, const std::string& texture_id)
+  {
+    auto component = std::make_shared<UIComponent>();
+    component->id = id;
+    component->type = UIComponentType::IMAGE;
+    component->bounds = scaleRect(bounds);
+    component->texture_id = texture_id;
+    component->z_order = UIConstants::ZORDER_IMAGE;
 
     components_[id] = component;
   }
@@ -162,6 +175,8 @@ namespace Simulacrum
   void UIManager::recordGPUVertices(GPURenderer& gpu_renderer)
   {
     gpu_primitive_commands.clear();
+    gpu_image_commands.clear();
+    gpu_text_commands.clear();
 
     auto& primitive_pool = gpu_renderer.getPrimitiveVertexPool();
     auto& ui_pool = gpu_renderer.getUIVertexPool();
@@ -205,6 +220,40 @@ namespace Simulacrum
         primitive_offset += 6;
       };
 
+    auto addTextureRect = [&](const UIRect& rect, const std::string& texture_id)
+      {
+        if (ui_offset + 4 > GPU_UI_VERTEX_LIMIT) return;
+
+        auto* texture_data = TextureManager::Instance().getGPUTextureData(texture_id);
+
+        if (!texture_data || !texture_data->texture) return;
+
+        float tex_width = texture_data->width;
+        float tex_height = texture_data->height;
+
+        float x = static_cast<float>(rect.x);
+        float y = static_cast<float>(rect.y);
+        float w = static_cast<float>(rect.width);
+        float h = static_cast<float>(rect.height);
+
+        SpriteVertex* v = ui_base + ui_offset;
+
+        v[0] = { x, y, 0.0f, 0.0f, 255, 0, 0, 255 };
+        v[1] = { x + w, y, 1.0f, 0.0f, 255, 0, 0, 255 };
+        v[2] = { x + w, y + h, 1.0f, 1.0f, 255, 0, 0, 255 };
+        v[3] = { x, y + h, 0.0f, 1.0f, 255, 0, 0, 255 };
+
+        auto tex = (texture_data->texture->get());
+
+        UIGPUDrawCommand cmd;
+        cmd.type = UIGPUDrawCommand::Type::Image;
+        cmd.texture = texture_data->texture->get();
+        cmd.vertex_offset = ui_offset;
+        cmd.vertex_count = 4;
+        gpu_image_commands.push_back(cmd);
+        ui_offset += 4;
+      };
+
     // Render components in z-order
     const auto& sorted_components = getSortedComponents();
     for (const auto& component : sorted_components)
@@ -217,6 +266,9 @@ namespace Simulacrum
       {
       case UIComponentType::PANEL:
         addFilledRect(component->bounds, bg_color);
+        break;
+      case UIComponentType::IMAGE:
+        addTextureRect(component->bounds, component->texture_id);
         break;
       }
     }
@@ -258,6 +310,39 @@ namespace Simulacrum
       if (total_vertices > 0)
       {
         SDL_DrawGPUPrimitives(swapchain_pass, total_vertices, 1, 0, 0);
+      }
+    }
+
+    // Render images
+    if (!gpu_image_commands.empty())
+    {
+      SDL_BindGPUGraphicsPipeline(swapchain_pass, gpu_renderer.getUISpritePipeline());
+      gpu_renderer.pushViewProjection(swapchain_pass, ortho_matrix);
+
+      // Bind vertex buffer
+      SDL_GPUBufferBinding vertex_binding{};
+      vertex_binding.buffer = gpu_renderer.getSpriteVertexPool().getGPUBuffer();
+      vertex_binding.offset = 0;
+      SDL_BindGPUVertexBuffers(swapchain_pass, 0, &vertex_binding, 1);
+
+      // Bind index buffer
+      auto& batch = gpu_renderer.getSpriteBatch();
+      SDL_GPUBufferBinding index_binding{};
+      index_binding.buffer = batch.getIndexBuffer();
+      index_binding.offset = 0;
+      SDL_BindGPUIndexBuffer(swapchain_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+      // Draw each texture
+      for (const auto& cmd : gpu_image_commands)
+      {
+        SDL_GPUTextureSamplerBinding tex_sampler{};
+        tex_sampler.texture = cmd.texture;
+
+        tex_sampler.sampler = gpu_renderer.getNearestSampler();
+        SDL_BindGPUFragmentSamplers(swapchain_pass, 0, &tex_sampler, 1);
+
+        uint32_t first_index = (cmd.vertex_offset / 4) * 6;
+        SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
       }
     }
   }

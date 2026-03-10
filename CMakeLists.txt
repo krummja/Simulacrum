@@ -55,6 +55,14 @@ setup_project_dependencies()
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
+set(TEST_SOURCES
+        ${CMAKE_SOURCE_DIR}/tests/SimulacrumTests.cpp
+)
+foreach(source ${SOURCES})
+        list(APPEND TEST_SOURCES ${source})
+endforeach()
+list(FILTER TEST_SOURCES EXCLUDE REGEX ".*SimulacrumMain\\.cpp$")
+
 # ==============================================
 # Executable file configuration
 # ==============================================
@@ -75,11 +83,7 @@ target_include_directories(${EXECUTABLE_TARGET}
                 ${PROJECT_SOURCE_DIR}/src
 )
 
-list(FILTER SOURCES EXCLUDE REGEX ".*SimulacrumMain\\.cpp$")
-foreach(source ${SOURCES})
-        message(STATUS ${source})
-endforeach()
-add_executable(SimulacrumTests "tests/test.cpp" ${SOURCES})
+add_executable(SimulacrumTests ${TEST_SOURCES})
 
 target_link_libraries(SimulacrumTests
         PUBLIC
@@ -93,6 +97,7 @@ target_link_libraries(SimulacrumTests
 
 target_include_directories(SimulacrumTests
         PRIVATE
+                ${PROJECT_SOURCE_DIR}/tests
                 ${PROJECT_SOURCE_DIR}/src
 )
 

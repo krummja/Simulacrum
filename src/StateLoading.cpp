@@ -21,7 +21,8 @@ namespace Simulacrum
     spdlog::debug("Entering Loading State");
 
     auto& ui = UIManager::Instance();
-    ui.createPanel("panel-1", {-1, 0, 300, 300});
+    ui.createPanel("panel-1", {0, 0, 300, 300});
+    ui.createImage("image-1", {20, 20, 16, 16}, "tile_0815");
 
     return true;
   }

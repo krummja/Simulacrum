@@ -11,6 +11,7 @@
 #include "ThreadSystem.hpp"
 #include "StateManager.hpp"
 #include "UIManager.hpp"
+#include "TextureManager.hpp"
 
 #include "StateLoading.hpp"
 
@@ -162,25 +163,6 @@ namespace Simulacrum
     // Create TimestepManager (uses default 60 FPS target and 1/60s fixed timestep)
     timestep_manager_ = std::make_unique<TimestepManager>();
 
-    // bool vsync_set_successfully = SDL_SetRenderVSync(
-    //     renderer_.get(),
-    //     vsync_requested ? 1 : 0
-    // );
-
-    // if (!vsync_set_successfully) {
-    //     spdlog::warn(
-    //         "Failed to {} VSync: {}",
-    //         vsync_requested ? "enable" : "disable",
-    //         SDL_GetError()
-    //     );
-    // }
-
-    // if (vsync_set_successfully) {
-    //     verifyVsyncState(vsync_requested);
-    // } else {
-    //     timestep_manager_->setSoftwareFrameLimiting(true);
-    // }
-
     if (timestep_manager_->isUsingSoftwareFrameLimiting())
     {
       spdlog::info(
@@ -202,23 +184,6 @@ namespace Simulacrum
     int const actual_height = pixel_height;
     logical_width = actual_width;
     logical_height = actual_height;
-
-    // if (!SDL_SetRenderDrawColor(renderer_.get(), SIMULACRUM_SAKURA)) {
-    //     spdlog::error("Failed to set initial render draw color: {}", SDL_GetError());
-    // }
-
-    // // Use native resolution rendering for crisp, sharp text.
-    // // Disable logical presentation to render at native resolution
-    // SDL_RendererLogicalPresentation const presentation_mode = SDL_LOGICAL_PRESENTATION_DISABLED;
-
-    // if (!SDL_SetRenderLogicalPresentation(
-    //     renderer_.get(),
-    //     actual_width,
-    //     actual_height,
-    //     presentation_mode
-    // )) {
-    //     spdlog::error("Failed to set render logical presentation: {}", SDL_GetError());
-    // }
 
     spdlog::info("Using native resolution: {}x{}", actual_width, actual_height);
 
@@ -255,7 +220,17 @@ namespace Simulacrum
       )
     );
 
-    // TODO Texture Manager
+    // Create and initialize texture manager - MAIN THREAD
+    spdlog::info("Create texture manager");
+
+    TextureManager& texture_manager = TextureManager::Instance();
+
+    // Load textures in main thread
+    spdlog::info("Creating and loading textures");
+    const std::string texture_res_path = ResourcePath::resolve("res/img");
+    constexpr std::string_view texture_prefix = "";
+
+    texture_manager.loadGPU(texture_res_path, std::string(texture_prefix));
 
     // TODO Sound Manager
 

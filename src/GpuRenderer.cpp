@@ -646,7 +646,7 @@ namespace Simulacrum
       }
     }
 
-    // Composite pipelone (renders to swapchain)
+    // Composite pipeline (renders to swapchain)
     {
       auto config = GPUPipeline::createCompositeConfig(
         shader_manager.getShader(composite_vert),

@@ -243,6 +243,29 @@ namespace Simulacrum
         }
     };
 
+    struct UIAnimation
+    {
+        std::string component_id{};
+        float duration{ 0.0f };
+        float elapsed{ 0.0f };
+        bool active{ false };
+
+        UIRect start_bounds{};
+        UIRect target_bounds{};
+        SDL_Color start_color{};
+        SDL_Color end_color{};
+
+        std::function<void()> on_complete{};
+    };
+
+    struct EventLogState
+    {
+        float timer{ 0.0f };
+        int message_index{ 0 };
+        float update_interval{ 2.0f };
+        bool auto_update{ false };
+    };
+
     class UIManager
     {
     public:
@@ -267,47 +290,240 @@ namespace Simulacrum
 
         void applyPositioning(std::shared_ptr<UIComponent> component, int width, int height);
         const std::vector<std::shared_ptr<UIComponent>>& getSortedComponents() const;
+
         void createPanel(const std::string& id, const UIRect& bounds);
+        void createProgressBar(const std::string& id, const UIRect& bounds, float min_val = 0.0f, float max_val = 1.0f);
+        void createInputField(const std::string& id, const UIRect& bounds, const std::string& placeholder = "");
+        void createImage(const std::string& id, const UIRect& bounds, const std::string& texture_id = "");
+        void createSlider(const std::string& id, const UIRect& bounds, float min_val = 0.0f, float max_val = 1.0f);
+        void createCheckbox(const std::string& id, const UIRect& bounds, const std::string& text = "");
+        void createList(const std::string& id, const UIRect& bounds);
+        void createTooltip(const std::string& id, const std::string& text = "");
+        void createEventLog(const std::string& id, const UIRect& bounds, int max_entries = UIConstants::DEFAULT_EVENT_LOG_MAX_ENTRIES);
+        void createDialog(const std::string& id, const UIRect& bounds);
+        void createModal(const std::string& dialog_id, const UIRect& bounds, const std::string& theme, int window_width, int window_height);
+
+        void refreshAllComponentThemes() const;
+
+        void removeComponent(const std::string& id);
+        void clearAllComponents();
+        bool hasComponent(const std::string& id) const;
+        void setComponentVisible(const std::string& id, bool visible);
+        void setComponentEnabled(const std::string& id, bool enabled);
+        void setComponentBounds(const std::string& id, const UIRect& bounds);
+        void setComponentZOrder(const std::string& id, int z_order);
+        void setComponentPositioning(const std::string& id, const UIPositioning& positioning);
+
+        void setText(const std::string& id, const std::string& text);
+        void setTexture(const std::string& id, const std::string& texture_id);
+        void setValue(const std::string& id, float value);
+        void setChecked(const std::string& id, bool checked);
+        void setStyle(const std::string& id, const UIStyle& style);
+
+        void bindText(const std::string& id, std::function<std::string()> binding);
+        void bindList(const std::string& id, std::function<void(std::vector<std::string>&, std::vector<std::pair<std::string, int>>&)> binding);
+        void markBindingDirty(const std::string& id);
+        void markAllBindingsDIrty();
+
+        std::string getText(const std::string& id) const;
+        float getValue(const std::string& id) const;
+        UIRect getBounds(const std::string& id) const;
+        UIState getComponentState(const std::string& id) const;
+
+        bool isButtonClicked(const std::string& id) const;
+        bool isButtonPressed(const std::string& id) const;
+        bool isButtonHovered(const std::string& id) const;
+        bool isComponentFocused(const std::string& id) const;
+
+        void createLayout(const std::string& id, UILayoutType type, const UIRect& bounds);
+        void addComponentToLayout(const std::string& layout_id, const std::string& component_id);
+        void removeComponentFromLayout(const std::string& layout_id, const std::string& component_id);
+        void updateLayout(const std::string& layout_id);
+        void setLayoutSpacing(const std::string& layout_id, int spacing);
+        void setLayoutColumns(const std::string& layout_id, int columns);
+        void setLayoutAlignment(const std::string& layout_id, UIAlignment alignment);
+
+        void updateProgressBar(const std::string& id, float value);
+        void setProgressBarRange(const std::string& id, float min_val, float max_val);
+
+        void addListItem(const std::string& id, const std::string& item);
+        void removeListItem(const std::string& id, int index);
+        void clearList(const std::string& id);
+        int getSelectedListItem(const std::string& id) const;
+        void setSelectedListItem(const std::string& id, int index);
+
+        void setListMaxItems(const std::string& id, int max_items);
+        void addListItemWithAutoScroll(const std::string& id, const std::string& item);
+        void clearListItems(const std::string& id);
+
+        void addEventLogEntry(const std::string id, const std::string& entry);
+        void clearEventLog(const std::string& id);
+        void setEventLogMaxEntries(const std::string& id, int max_entries);
+        void enableEventLogAutoUpdate(const std::string& id, float interval = UIConstants::DEFAULT_EVENT_LOG_UPDATE_INTERVAL);
+        void disableEventLogAutoUpdate(const std::string& id);
+
+        void setTitleAlignment(const std::string& id, UIAlignment alignment);
+        void centerTitleInContainer(const std::string& id, int container_x, int container_width);
+
+        void setLabelAlignment(const std::string& id, UIAlignment alignment);
+
+        void setInputFieldPlaceholder(const std::string& id, const std::string& placeholder);
+        void setInputFieldMaxLength(const std::string& id, int max_length);
+        bool isInputFieldFocused(const std::string& id) const;
+
+        void animateMove(const std::string& id, const UIRect& target_bounds, float duration, std::function<void()> on_complete = nullptr);
+        void animateColor(const std::string& id, const SDL_Color& target_color, float duration, std::function<void()> on_complete = nullptr);
+        void stopAnimation(const std::string& id);
+        bool isAnimating(const std::string& id) const;
+
+        void loadTheme(const UITheme& theme);
+        void setDefaultTheme();
+        void setLightTheme();
+        void setDarkTheme();
+        void setThemeMode(const std::string& mode);
+        void applyThemeToComponent(const std::string& id, UIComponentType type);
+        void setGlobalStyle(const UIStyle& style);
+
+        void createOverlay(int window_width, int window_height);
+        void createOverlay();
+        void removeOverlay();
+
+        void enableTextBackground(const std::string& id, bool enable = true);
+        void setTextBackgroundColor(const std::string& id, SDL_Color color);
+        void setTextBackgroundPadding(const std::string& id, int padding);
+
+        void removeComponentWithPrefix(const std::string& prefix);
+        void resetToDefaultTheme();
+        void cleanupForStateTransition();
+
+        void prepareForStateTransition();
+
+        void calculateOptimalSize(const std::string& id);
+        void calculateOptimalSize(std::shared_ptr<UIComponent> component);
+        bool measureComponentContent(const std::shared_ptr<UIComponent>& component, int* width, int* height);
+
+        void invalidateLayout(const std::string& layout_id);
+        void recalculateLayout(const std::string& layout_id);
+        void enableAutoSizing(const std::string& id, bool enable = true);
+        void setAutoSizingConstraints(const std::string& id, const UIRect& min_bounds, const UIRect& max_bounds);
+
+        int getLogicalWidth() const;
+        int getLogicalHeight() const;
+        void createTitleAtTop(const std::string& id, const std::string& text, int height = UIConstants::DEFAULT_TITLE_HEIGHT);
+        void createButtonAtBottom(const std::string& id, const std::string& text, int width = UIConstants::DEFAULT_BUTTON_WIDTH, int height = UIConstants::DEFAULT_BUTTON_HEIGHT);
+        void createCenteredDialog(const std::string& id, int width, int height, const std::string& theme = "dark");
+        void createCenteredButton(const std::string& id, int offset_y, int width, int height, const std::string& text);
+
+        void createPanelAtBottomRight(const std::string& id, int width, int height, int offset_x = UIConstants::BOTTOM_RIGHT_OFFSET_X, int offset_y = UIConstants::BOTTOM_RIGHT_OFFSET_Y);
+
+        void createLabelAtBottomRight(const std::string& id, const std::string& text, int width, int height, int offset_x = UIConstants::BOTTOM_RIGHT_OFFSET_X, int offset_y = UIConstants::BOTTOM_RIGHT_OFFSET_Y);
+
+        void setGlobalFont(const std::string& font_id);
+        void setGlobalScale(float scale);
+        float getGlobalScale() const { return global_scale_; }
+
+        inline UIRect scaleRect(const UIRect& bounds) const
+        {
+            return {
+                static_cast<int>(bounds.x * global_scale_),
+                static_cast<int>(bounds.y * global_scale_),
+                static_cast<int>(bounds.width * global_scale_),
+                static_cast<int>(bounds.height * global_scale_)
+            };
+        }
+
+        float calculateOptimalScale(int width, int height);
+        void enableTooltips(bool enable) { tooltips_enabled_ = enable; }
+        void setTooltipDelay(float delay) { tooltip_delay_ = delay; }
+
+        void setDebugMode(bool enable) { debug_mode_ = enable; }
+        void drawDebugBounds(bool enable) { draw_debug_bounds_ = enable; }
+        bool isClickOnUI(const Vector2D& screen_pos) const;
 
         void recordGPUVertices(GPURenderer& gpu_renderer);
         void renderGPU(GPURenderer& gpu_renderer, SDL_GPURenderPass* pass);
 
     private:
-        bool is_shutdown_{ false };
 
         // Core data
         std::unordered_map<std::string, std::shared_ptr<UIComponent>> components_;
+        std::unordered_map<std::string, std::shared_ptr<UILayout>> layouts_;
+        std::vector<std::shared_ptr<UIAnimation>> animations_;
 
         // State tracking
+        std::vector<std::string> clicked_buttons_{};
+        std::vector<std::string> hovered_components_{};
+        std::string focused_component_{};
+        std::string hovered_tooltip_{};
+        float tooltip_timer{ 0.0f };
 
         // Theme and styling
+        UITheme current_theme_{};
+        UIStyle global_style_{};
+        std::string global_font_id_{ UIConstants::FONT_DEFAULT };
+        std::string title_font_id_{ UIConstants::FONT_TITLE };
+        std::string ui_font_id_{ UIConstants::FONT_UI };
         float global_scale_{ 1.0f };
+        std::string current_theme_mode{ "light" };
 
         // Settings
+        bool tooltips_enabled_{ true };
+        float tooltip_delay_{ 1.0f };
+        bool debug_mode_{ false };
+        bool draw_debug_bounds_{ false };
 
         // Event log state tracking
+        std::unordered_map<std::string, EventLogState> event_log_states{};
+        bool is_shutdown_{ false };
 
         // Window resize tracking for auto-repositioning
+        int current_logical_width_{ 0 };
+        int current_logical_height_{ 0 };
 
         // Input state
+        Vector2D last_mouse_position_{};
+        bool mouse_pressed_{ false };
+        bool mouse_released_{ false };
 
         // Performance optimization: Cached sorted components to avoid per-frame allocation + sorting
         mutable std::vector<std::shared_ptr<UIComponent>> sorted_components_cache{};
         mutable bool sorted_components_dirty_{ true };
 
         // Performance optimization: Value caches to avoid hash lookup when values unchanged
+        std::unordered_map<std::string, float> value_cache_{};
+        std::unordered_map<std::string, std::string> text_cache_{};
 
         // Private helper methods
+        std::shared_ptr<UIComponent> getComponent(const std::string& id);
+        std::shared_ptr<const UIComponent> getComponent(const std::string& id) const;
+        std::shared_ptr<UILayout> getLayout(const std::string& id);
 
         // Auto-repositioning system
+        void repositionAllComponents(int width, int height);
+        void handleInput();
+        void updateAnimations(float delta_time);
+        void updateTooltips(float delta_time);
+        void updateEventLogs(float delta_time);
 
-        // Component-specific rendering
+        void invalidateComponentCache();
 
         // Layout helpers
+        void applyAbsoluteLayout(const std::shared_ptr<UILayout>& layout);
+        void applyFlowLayout(const std::shared_ptr<UILayout>& layout);
+        void applyGridLayout(const std::shared_ptr<UILayout>& layout);
+        void applyStackLayout(const std::shared_ptr<UILayout>& layout);
+        void applyAnchorLayout(const std::shared_ptr<UILayout>& layout);
 
         // Utility helpers
+        SDL_Color interpolateColor(const SDL_Color& start, const SDL_Color& end, float t);
+        UIRect interpolateRect(const UIRect& start, const UIRect& end, float t);
+
+        void executeDeferredCallbacks();
 
         // Deferred execution queue to prevent iterator invalidation
+        std::vector<std::function<void()>> deferred_callbacks_{};
+
+        size_t active_binding_count_{ 0 };
 
         std::vector<UIGPUDrawCommand> gpu_primitive_commands{};
         std::vector<UIGPUDrawCommand> gpu_text_commands{};

@@ -93,7 +93,7 @@ namespace Simulacrum::UIConstants
     constexpr int TOOLTIP_FALLBACK_HEIGHT = 32;
 
     // Event Log Constants
-    constexpr int DEFAULT_EVENT_LOG_MMAX_ENTRIES = 5;
+    constexpr int DEFAULT_EVENT_LOG_MAX_ENTRIES = 5;
     constexpr float DEFAULT_EVENT_LOG_UPDATE_INTERVAL = 2.0f;
     constexpr float EVENT_LONG_WIDTH_PERCENT = 0.30F;
 
@@ -116,6 +116,7 @@ namespace Simulacrum::UIConstants
     constexpr int BUTTON_BOTTOM_OFFSET = 20;
     constexpr int BOTTOM_RIGHT_OFFSET_X = 10;
     constexpr int BOTTOM_RIGHT_OFFSET_Y = 10;
+    constexpr int DEFAULT_TITLE_HEIGHT = 40;
     constexpr int DEFAULT_BUTTON_WIDTH = 120;
     constexpr int DEFAULT_BUTTON_HEIGHT = 40;
 
