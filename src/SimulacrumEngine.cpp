@@ -12,6 +12,7 @@
 #include "StateManager.hpp"
 #include "UIManager.hpp"
 #include "TextureManager.hpp"
+#include "GpuTexture.hpp"
 
 #include "StateLoading.hpp"
 
@@ -379,26 +380,50 @@ namespace Simulacrum
     auto& gpu_renderer = GPURenderer::Instance();
     gpu_renderer.beginFrame();
 
-    state_manager_->recordGPUVertices(gpu_renderer, interpolation_alpha);
+    // Record vertices
+    draw_commands_.clear();
+
+    TextureManager& texture_manager = TextureManager::Instance();
+
+    auto& vertex_pool = gpu_renderer.getSpriteVertexPool();
+    auto* write_ptr = static_cast<SpriteVertex*>(vertex_pool.getMappedPtr());
+
+    if (!write_ptr) return;
+
+    uint32_t vertex_offset = 0;
+
+    auto addImage = [&](const char* texture_name, int x, int y) {
+      const TextureData* tex_data = texture_manager.getGPUTextureData(texture_name);
+      if (!tex_data || !tex_data->texture) return;
+
+      SpriteVertex* v = write_ptr + vertex_offset;
+
+      float sx = static_cast<float>(x);
+      float sy = static_cast<float>(y);
+
+      float sw = tex_data->width;
+      float sh = tex_data->height;
+
+      v[0] = { sx, sy, 0.0f, 1.0f, 255, 255, 255, 255 };
+      v[1] = { sx + sw, sy, 1.0f, 0.0f, 255, 255, 255, 255  };
+      v[2] = { sx + sw, sy + sh, 1.0f, 1.0f, 255, 255, 255, 255 };
+      v[3] = { sx, sy + sh, 0.0f, 1.0f, 255, 255, 255, 255 };
+
+      GPUDrawCommand cmd;
+      cmd.texture = tex_data->texture->get();
+      cmd.vertex_count = 4;
+      cmd.vertex_offset = 4;
+      draw_commands_.push_back(cmd);
+      vertex_offset += 4;
+    };
+
+    addImage("tile_0815", 0, 0);
+    vertex_pool.setWrittenVertexCount(vertex_offset);
 
     SDL_GPURenderPass* scene_pass = gpu_renderer.beginScenePass();
-
-    if (scene_pass)
-    {
-      state_manager_->renderGPUScene(gpu_renderer, scene_pass, interpolation_alpha);
-    }
-
     SDL_GPURenderPass* swapchain_pass = gpu_renderer.beginSwapchainPass();
 
-    if (swapchain_pass)
-    {
-      gpu_renderer.renderComposite(swapchain_pass);
-    }
-
-    if (swapchain_pass)
-    {
-      state_manager_->renderGPUUI(gpu_renderer, swapchain_pass);
-    }
+    // Issue draw commands
   }
 
   void SimulacrumEngine::present()

@@ -147,6 +147,15 @@ namespace Simulacrum
 
     bool globally_paused_{ false };
 
+    struct GPUDrawCommand
+    {
+      SDL_GPUTexture* texture{nullptr};
+      uint32_t vertex_offset{0};
+      uint32_t vertex_count{0};
+    };
+
+    std::vector<GPUDrawCommand> draw_commands_;
+
     SimulacrumEngine(const SimulacrumEngine&) = delete;
     SimulacrumEngine& operator=(const SimulacrumEngine&) = delete;
 
