@@ -222,7 +222,7 @@ namespace Simulacrum
 
     auto addTextureRect = [&](const std::string& texture_id, int x, int y, int w, int h)
       {
-        if (ui_offset + 4 > GPU_UI_VERTEX_LIMIT) return;
+        if (ui_offset + 6 > GPU_UI_VERTEX_LIMIT) return;
 
         auto* texture_data = TextureManager::Instance().getGPUTextureData(texture_id);
 
@@ -238,14 +238,23 @@ namespace Simulacrum
 
         SpriteVertex* v = ui_base + ui_offset;
 
-        // Top-left
-        v[0] = {sx, sy, 0.0f, 0.0f, 255, 255, 255, 255};
-        // Top-right
-        v[1] = {sx + sw, sy, 1.0f, 0.0f, 255, 255, 255, 255};
-        // Bottom-right
-        v[2] = {sx + sw, sy + sh, 1.0f, 1.0f, 255, 255, 255, 255};
-        // Bottom-left
-        v[3] = {sx, sy + sh, 0.0f, 1.0f, 255, 255, 255, 255};
+        // Triangle 1
+        v[0] = { sx,        sy,       0.0f, 0.0f,   255, 255, 255, 255 };
+        v[1] = { sx + sw,   sy,       1.0f, 0.0f,   255, 255, 255, 255 };
+        v[2] = { sx + sw,   sy + sh,  1.0f, 1.0f,   255, 255, 255, 255 };
+        // Triangle 2
+        v[3] = { sx,        sy,       0.0f, 0.0f,   255, 255, 255, 255 };
+        v[4] = { sx + sw,   sy + sh,  1.0f, 1.0f,   255, 255, 255, 255 };
+        v[5] = { sx,        sy + sh,  0.0f, 1.0f,   255, 255, 255, 255 };
+
+        // // Top-left
+        // v[0] = {sx, sy, 0.0f, 0.0f, 255, 255, 255, 255};
+        // // Top-right
+        // v[1] = {sx + sw, sy, 1.0f, 0.0f, 255, 255, 255, 255};
+        // // Bottom-right
+        // v[2] = {sx + sw, sy + sh, 1.0f, 1.0f, 255, 255, 255, 255};
+        // // Bottom-left
+        // v[3] = {sx, sy + sh, 0.0f, 1.0f, 255, 255, 255, 255};
 
         auto tex = (texture_data->texture->get());
 
@@ -253,9 +262,9 @@ namespace Simulacrum
         cmd.type = UIGPUDrawCommand::Type::Image;
         cmd.texture = texture_data->texture->get();
         cmd.vertex_offset = ui_offset;
-        cmd.vertex_count = 4;
+        cmd.vertex_count = 6;
         gpu_image_commands.push_back(cmd);
-        ui_offset += 4;
+        ui_offset += 6;
       };
 
     // Render components in z-order
@@ -350,10 +359,23 @@ namespace Simulacrum
         tex_sampler.sampler = gpu_renderer.getLinearSampler();
         SDL_BindGPUFragmentSamplers(swapchain_pass, 0, &tex_sampler, 1);
 
+        uint32_t total_vertices = std::accumulate(
+          gpu_image_commands.begin(), gpu_image_commands.end(), 0u,
+          [](uint32_t sum, const auto& cmd)
+          {
+            return sum + cmd.vertex_count;
+          }
+        );
+
+        if (total_vertices > 0)
+        {
+          SDL_DrawGPUPrimitives(swapchain_pass, total_vertices, 1, 0, 0);
+        }
+
         // Draw this sprite (6 indices per quad)
         // first_index = (vertex_offset / 4) * 6 because index buffer has 6 indices per 4 vertices
-        uint32_t first_index = (cmd.vertex_offset / 4) * 6;
-        SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
+        // uint32_t first_index = (cmd.vertex_offset / 4) * 6;
+        // SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
       }
     }
   }

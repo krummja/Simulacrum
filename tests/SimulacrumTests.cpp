@@ -79,7 +79,7 @@ TEST_CASE_PERSISTENT_FIXTURE(ResourceTestFixture, "Resource Tests")
         Simulacrum::GPUTexture texture(
             device->get(),
             256, 256,
-            SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+            SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM,
             SDL_GPU_TEXTUREUSAGE_SAMPLER
         );
 
@@ -87,7 +87,7 @@ TEST_CASE_PERSISTENT_FIXTURE(ResourceTestFixture, "Resource Tests")
         REQUIRE(texture.get() != nullptr);
         REQUIRE(texture.getWidth() == 256);
         REQUIRE(texture.getHeight() == 256);
-        REQUIRE(texture.getFormat() == SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM);
+        REQUIRE(texture.getFormat() == SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM);
         REQUIRE(texture.isSampler());
         REQUIRE(!texture.isRenderTarget());
     }

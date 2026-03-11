@@ -149,7 +149,7 @@ namespace Simulacrum
     auto gpu_texture = std::make_unique<GPUTexture>(
       gpu_device.get(),
       width, height,
-      SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+      SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM,
       SDL_GPU_TEXTUREUSAGE_SAMPLER
     );
 

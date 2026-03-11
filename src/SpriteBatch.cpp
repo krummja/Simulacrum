@@ -325,8 +325,6 @@ namespace Simulacrum
     // Issue indexed draw call
     uint32_t index_count = static_cast<uint32_t>(sprite_count_ * INDICES_PER_SPRITE);
     SDL_DrawGPUIndexedPrimitives(pass, index_count, 1, 0, 0, 0);
-
-    spdlog::debug("Drawing");
   }
 
 } // namespace Simulacrum

@@ -367,7 +367,7 @@ namespace Simulacrum
     color_target.texture = swapchain_texture_;
     color_target.load_op = SDL_GPU_LOADOP_CLEAR;
     color_target.store_op = SDL_GPU_STOREOP_STORE;
-    color_target.clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    color_target.clear_color = { 1.0f, 0.0f, 1.0f, 1.0f };
 
     current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);
 
@@ -555,19 +555,24 @@ namespace Simulacrum
     auto& shader_manager = GPUShaderManager::Instance();
 
     ShaderInfo sprite_vert_info{};
+    sprite_vert_info.num_samplers = 0;
     sprite_vert_info.num_uniform_buffers = 1;
 
     ShaderInfo sprite_frag_info{};
     sprite_frag_info.num_samplers = 1;
+    sprite_frag_info.num_uniform_buffers = 0;
 
     ShaderInfo color_vert_info{};
+    color_vert_info.num_samplers = 0;
     color_vert_info.num_uniform_buffers = 1;
 
     ShaderInfo color_frag_info{};
-    // No samplers or uniforms
+    color_frag_info.num_samplers = 1;
+    color_frag_info.num_uniform_buffers = 0;
 
     ShaderInfo composite_vert_info{};
-    // No vertex uniform - composite uses fragment uniforms only
+    composite_vert_info.num_samplers = 0;
+    composite_vert_info.num_uniform_buffers = 1;
 
     ShaderInfo composite_frag_info{};
     composite_frag_info.num_samplers = 1;
@@ -622,7 +627,7 @@ namespace Simulacrum
   {
     auto& shader_manager = GPUShaderManager::Instance();
 
-    SDL_GPUTextureFormat scene_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    SDL_GPUTextureFormat scene_format = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
     SDL_GPUTextureFormat swapchain_format = GPUDevice::Instance().getSwapchainFormat();
 
     const std::string sprite_vert = ResourcePath::resolve("res/shaders/sprite.vert");
@@ -737,7 +742,7 @@ namespace Simulacrum
       device_,
       scene_width,
       scene_height,
-      SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+      SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM,
       SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER
     );
 

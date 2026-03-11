@@ -76,7 +76,7 @@ add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 # Link all dependent libraries
 target_link_libraries(${EXECUTABLE_TARGET}
         SDL3::SDL3
-        SDL3_shadercross::SDL3_shadercross
+        # SDL3_shadercross::SDL3_shadercross
         spdlog::spdlog
         glm::glm
         nlohmann_json::nlohmann_json
@@ -110,7 +110,8 @@ target_include_directories(SimulacrumTests
 # ==============================================
 
 # Compile shaders from GLSL -> SPV
-compile_shaders(${EXECUTABLE_TARGET})
+# compile_shaders(${EXECUTABLE_TARGET})
+compile_shaders_v2(${EXECUTABLE_TARGET})
 
 # Set compilation options (defined in CompilerSettings.cmake)
 setup_compiler_options(${EXECUTABLE_TARGET})

@@ -10,6 +10,8 @@ struct SDL_GPUTexture;
 
 namespace Simulacrum
 {
+  class SpriteBatch;
+
   class LoadingState : public State
   {
   public:
@@ -37,6 +39,7 @@ namespace Simulacrum
 
   private:
     std::string target_state_name_;
+    SpriteBatch* sprite_batch_{nullptr};
 
     struct GPUDrawCommand
     {

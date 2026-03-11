@@ -92,8 +92,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
       engine.update(ts.getUpdateDeltaTime());
     }
 
-    // Simulacrum::GPURenderer::Instance().setCompositeParams(-1.0f, 0.0f, 0.0f);
-
     engine.render();
 
     engine.present();

@@ -50,7 +50,7 @@ namespace Simulacrum
     SDL_GPUBlendOp alpha_blend_op{ SDL_GPU_BLENDOP_ADD };
 
     // Color target format (typically swapchain format)
-    SDL_GPUTextureFormat color_format{ SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM };
+    SDL_GPUTextureFormat color_format{ SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM };
 
     // Rasterizer state
     SDL_GPUFillMode fill_mode{ SDL_GPU_FILLMODE_FILL };
