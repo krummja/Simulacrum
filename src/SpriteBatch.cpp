@@ -261,13 +261,13 @@ namespace Simulacrum
     SpriteVertex* v = write_ptr_ + vertex_count_;
 
     // Vertex 0: top-left
-    v[0] = {x0, y0, u0, v0, r, g, b, a};
+    v[0] = { x0, y0, u0, v0, r, g, b, a };
     // Vertex 1: top-right
-    v[1] = {x1, y0, u1, v0, r, g, b, a};
+    v[1] = { x1, y0, u1, v0, r, g, b, a };
     // Vertex 2: bottom-right
-    v[2] = {x1, y1, u1, v1, r, g, b, a};
+    v[2] = { x1, y1, u1, v1, r, g, b, a };
     // Vertex 3: bottom-left
-    v[3] = {x0, y1, u0, v1, r, g, b, a};
+    v[3] = { x0, y1, u0, v1, r, g, b, a };
 
     vertex_count_ += VERTICES_PER_SPRITE;
     ++sprite_count_;

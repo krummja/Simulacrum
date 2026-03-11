@@ -6,9 +6,15 @@ set(SUPPRESS_CONSOLE_WINDOW OFF)
 function(setup_compiler_options TARGET_NAME)
     if(MSVC)
         # Visual Studio: Enable all warnings + UTF-8 encoding support
-        target_compile_options(${TARGET_NAME} PRIVATE /W4 /utf-8)
+        target_compile_options(${TARGET_NAME} PRIVATE
+            /W4
+            /utf-8
+            /std=c++latest
+            /Zi  # program database
+        )
+
         # Support for parallel compilation
-        add_compile_options(/MP /std=c++latest)
+        add_compile_options(/MP)
 
         # Suppress console window
         if (SUPPRESS_CONSOLE_WINDOW)

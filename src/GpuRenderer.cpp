@@ -322,7 +322,7 @@ namespace Simulacrum
     // Begin scene render pass
     SDL_GPUColorTargetInfo color_target = scene_texture_->asColorTarget(
       SDL_GPU_LOADOP_CLEAR,
-      { 1.0f, 0.0f, 1.0f, 1.0f }
+      { 0.12f, 0.12f, 0.12f, 1.0f }
     );
 
     current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);
@@ -367,7 +367,7 @@ namespace Simulacrum
     color_target.texture = swapchain_texture_;
     color_target.load_op = SDL_GPU_LOADOP_CLEAR;
     color_target.store_op = SDL_GPU_STOREOP_STORE;
-    color_target.clear_color = { 1.0f, 0.0f, 1.0f, 1.0f };
+    color_target.clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);
 

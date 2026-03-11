@@ -60,6 +60,8 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 set(TEST_SOURCES
         ${CMAKE_SOURCE_DIR}/tests/SimulacrumTests.cpp
         ${CMAKE_SOURCE_DIR}/tests/GpuTypesTests.cpp
+        ${CMAKE_SOURCE_DIR}/tests/GpuVertexPoolTests.cpp
+        ${CMAKE_SOURCE_DIR}/tests/SpriteBatchTests.cpp
 )
 foreach(source ${SOURCES})
         list(APPEND TEST_SOURCES ${source})
@@ -76,7 +78,6 @@ add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 # Link all dependent libraries
 target_link_libraries(${EXECUTABLE_TARGET}
         SDL3::SDL3
-        # SDL3_shadercross::SDL3_shadercross
         spdlog::spdlog
         glm::glm
         nlohmann_json::nlohmann_json

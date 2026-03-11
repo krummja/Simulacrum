@@ -76,7 +76,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     return -1;
   }
 
-  engine.getStateManager()->pushState("Loading State");
+  // engine.getStateManager()->pushState("Loading State");
 
   Simulacrum::TimestepManager ts = Simulacrum::TimestepManager();
 

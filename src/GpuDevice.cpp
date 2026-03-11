@@ -33,7 +33,7 @@ namespace Simulacrum
 
     device_ = SDL_CreateGPUDevice(
       SDL_GPU_SHADERFORMAT_SPIRV,
-      false,
+      true,
       "vulkan"
     );
 

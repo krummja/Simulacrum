@@ -137,6 +137,7 @@ namespace Simulacrum
 
     // Advance to next frame's transfer buffer
     frame_index_ = (frame_index_ + 1) % FRAME_COUNT;
+
     current_vertex_count_ = 0;
     pending_vertex_count_ = 0;
 

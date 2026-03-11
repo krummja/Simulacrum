@@ -62,17 +62,23 @@ namespace Simulacrum
       color_target.blend_state.src_alpha_blendfactor = config.src_alpha_factor;
       color_target.blend_state.dst_alpha_blendfactor = config.dst_alpha_factor;
       color_target.blend_state.alpha_blend_op = config.alpha_blend_op;
+      color_target.blend_state.color_write_mask =
+        SDL_GPU_COLORCOMPONENT_R |
+        SDL_GPU_COLORCOMPONENT_G |
+        SDL_GPU_COLORCOMPONENT_B |
+        SDL_GPU_COLORCOMPONENT_A;
     }
+
     else
     {
       color_target.blend_state.enable_blend = false;
+      color_target.blend_state.color_write_mask =
+        SDL_GPU_COLORCOMPONENT_R |
+        SDL_GPU_COLORCOMPONENT_G |
+        SDL_GPU_COLORCOMPONENT_B |
+        SDL_GPU_COLORCOMPONENT_A;
     }
 
-    color_target.blend_state.color_write_mask =
-      SDL_GPU_COLORCOMPONENT_R |
-      SDL_GPU_COLORCOMPONENT_G |
-      SDL_GPU_COLORCOMPONENT_B |
-      SDL_GPU_COLORCOMPONENT_A;
 
     // Build rasterizer state
     SDL_GPURasterizerState rasterizer{};
@@ -146,22 +152,26 @@ namespace Simulacrum
 
     // Vertex buffer: position(vec2) + texcoord(vec2) + color(rgba8) = 20 bytes
     config.vertex_buffers[0].slot = 0;
-    config.vertex_buffers[0].pitch = sizeof(float) * 4 + sizeof(uint8_t) * 4;
+    config.vertex_buffers[0].pitch = (sizeof(float) * 4) + (sizeof(uint8_t) * 4);
     config.vertex_buffers[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
     config.vertex_buffers[0].instance_step_rate = 0;
     config.vertex_buffer_count = 1;
 
     // Vertex attributes: position, texcoord, color
+
+    // layout(location = 0) in vec2 inPosition
     config.vertex_attributes[0].location = 0;
     config.vertex_attributes[0].buffer_slot = 0;
     config.vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
     config.vertex_attributes[0].offset = 0;
 
+    // layout(location = 1) in vec2 inTexCoord
     config.vertex_attributes[1].location = 1;
     config.vertex_attributes[1].buffer_slot = 0;
     config.vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
     config.vertex_attributes[1].offset = sizeof(float) * 2;
 
+    // layout(location = 2) in vec4 inColor
     config.vertex_attributes[2].location = 2;
     config.vertex_attributes[2].buffer_slot = 0;
     config.vertex_attributes[2].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
@@ -179,6 +189,7 @@ namespace Simulacrum
       config.dst_alpha_factor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
       config.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
     }
+
     else
     {
       config.enable_blend = false;
@@ -202,18 +213,21 @@ namespace Simulacrum
 
     // Vertex buffer: position(vec2) + color(rgba8) = 12 bytes
     config.vertex_buffers[0].slot = 0;
-    config.vertex_buffers[0].pitch = sizeof(float) * 2 + sizeof(uint8_t) * 4;
+    config.vertex_buffers[0].pitch = (sizeof(float) * 2) + (sizeof(uint8_t) * 4);
     config.vertex_buffers[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
     config.vertex_buffers[0].instance_step_rate = 0;
 
     config.vertex_buffer_count = 1;
 
     // Vertex attributes: position, color
+
+    // layout(location = 0) in vec2 inPosition
     config.vertex_attributes[0].location = 0;
     config.vertex_attributes[0].buffer_slot = 0;
     config.vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
     config.vertex_attributes[0].offset = 0;
 
+    // layout(location = 1) in vec4 inColor
     config.vertex_attributes[1].location = 1;
     config.vertex_attributes[1].buffer_slot = 0;
     config.vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;

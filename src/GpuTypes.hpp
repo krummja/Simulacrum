@@ -9,8 +9,8 @@ namespace Simulacrum
   /// @brief Vertex format for textured sprites.
   struct SpriteVertex
   {
-    float x, y;         // Position (8 bytes)
-    float u, v;         // Texture coordinates (8 bytes)
+    float x, y;         // Position (8 bytes) R32G32_FLOAT
+    float u, v;         // Texture coordinates (8 bytes) R32G32_FLOAT
     uint8_t r, g, b, a; // Color packed (4 bytes)
     // Total: 20 bytes per vertex
   };

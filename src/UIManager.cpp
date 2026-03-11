@@ -264,7 +264,7 @@ namespace Simulacrum
         cmd.vertex_offset = ui_offset;
         cmd.vertex_count = 6;
         gpu_image_commands.push_back(cmd);
-        ui_offset += 6;
+        ui_offset += 4;
       };
 
     // Render components in z-order
