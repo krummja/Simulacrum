@@ -1,16 +1,23 @@
 #include "Engine.hpp"
-#include "ResourcePath.hpp"
-#include "SettingsManager.hpp"
 
+#include <future>
+
+#include <spdlog/spdlog.h>
 #include <SDL3/SDL.h>
 
+#include "ResourcePath.hpp"
+#include "SettingsManager.hpp"
+#include "GpuDevice.hpp"
+#include "GPURenderer.hpp"
 #include "InputManager.hpp"
-#include "spdlog/spdlog.h"
+#include "ThreadSystem.hpp"
 
 namespace Simulacrum
 {
-  bool Engine::init(std::string_view title)
+  bool Engine::init(const std::string_view title)
   {
+    // Initialize SDL
+
     spdlog::info("Initializing SDL video and gamepad");
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
@@ -21,12 +28,15 @@ namespace Simulacrum
 
     spdlog::info("SDL video online");
 
+
+    // Load Settings
+
     spdlog::info("Loading settings");
     const std::string settings_path = ResourcePath::resolve("res/settings.json");
     auto& settings_manager = SettingsManager::Instance();
     settings_manager.loadFromFile(settings_path);
 
-    auto& graphics_settings = settings_manager.getGraphicsSettings();
+    const auto& graphics_settings = settings_manager.getGraphicsSettings();
 
     const int width = graphics_settings.resolution_width;
     const int height = graphics_settings.resolution_height;
@@ -56,6 +66,9 @@ namespace Simulacrum
     windowed_width_ = window_width_;
     windowed_height_ = window_height_;
 
+
+    // Initialize SDL Window
+
     SDL_WindowFlags flags = 0;
 
     if (fullscreen)
@@ -81,6 +94,105 @@ namespace Simulacrum
     }
 
     spdlog::info("Window creation system online");
+
+
+    // GPU Device
+
+    if (auto& gpu_device = GPUDevice::Instance(); gpu_device.init(window_.get()))
+    {
+      if (auto& gpu_renderer = GPURenderer::Instance(); gpu_renderer.init())
+      {
+        spdlog::info("SDL3 GPU rendering initialized successfully");
+      }
+      else
+      {
+        spdlog::critical("Failed to initialize SDL3 GPU rendering");
+        gpu_device.shutdown();
+        return false;
+      }
+    }
+
+    int pixel_width = window_width_;
+    int pixel_height = window_height_;
+    int logical_width = window_width_;
+    int logical_height = window_height_;
+
+    if (!SDL_GetWindowSizeInPixels(window_.get(), &pixel_width, &pixel_height))
+    {
+      spdlog::error("Failed to get window pixel size: {}", SDL_GetError());
+    }
+
+    if (!SDL_GetWindowSizeInPixels(window_.get(), &logical_width, &logical_height))
+    {
+      spdlog::error("Failed to get window logical size: {}", SDL_GetError());
+    }
+
+    spdlog::info("GPU rendering system online");
+
+    // Store actual dimensions for UI positioning
+    int const actual_width = pixel_width;
+    int const actual_height = pixel_height;
+    logical_width = actual_width;
+    logical_height = actual_height;
+
+    spdlog::info("Using native resolution: {}x{}", actual_width, actual_height);
+
+    // Calculate DPI-aware font sizes before threading
+    dpi_scale_ = 1.0f;
+
+    spdlog::info(
+      "DPI scale: {}, window: {}x{}",
+      dpi_scale_, window_width_, window_height_
+    );
+
+    // Unified VSync initialization with automatic fallback
+    auto& settings = SettingsManager::Instance();
+    const bool vsync_requested = settings.getGraphicsSettings().vsync;
+    is_vsync_requested_ = vsync_requested;
+
+    spdlog::info(
+      "VSync setting from SettingsManager: {}",
+      vsync_requested ? "enabled" : "disabled"
+    );
+
+    // Create TimestepManager (uses default 60 FPS target and 1/60s fixed timestep)
+    timestep_manager_ = std::make_unique<TimestepManager>();
+
+    if (timestep_manager_->isUsingSoftwareFrameLimiting())
+    {
+      spdlog::info(
+        "Created: {:.0f} Hz updates, {:.0f} FPS target, software frame limiting",
+        timestep_manager_->getUpdateFrequencyHz(),
+        timestep_manager_->getTargetFPS()
+      );
+    }
+    else
+    {
+      spdlog::info(
+        "Created: {:.0f} Hz updates, VSync enabled",
+        timestep_manager_->getUpdateFrequencyHz()
+      );
+    }
+
+
+    // Threaded Initialization Tasks
+
+    std::vector<std::future<bool>> init_tasks;
+    init_tasks.reserve(4);
+
+    init_tasks.push_back(
+      ThreadSystem::Instance().enqueueTaskWithResult(
+        []() -> bool
+        {
+          if (InputManager& input_manager = InputManager::Instance(); !input_manager.init())
+          {
+            spdlog::critical("Failed to initialize InputManager");
+            return false;
+          }
+          return true;
+        }
+      )
+    );
 
     Instance().setIsRunning(true);
     return true;
@@ -173,13 +285,19 @@ namespace Simulacrum
   void Engine::clean()
   {
     spdlog::info("Starting shutdown...");
-
     auto window_to_destroy = std::move(window_);
+
+    spdlog::info("Shutting down GPU renderer...");
+    GPURenderer::Instance().shutdown();
+
+    spdlog::info("Shutting down GPU device...");
+    GPUDevice::Instance().shutdown();
 
     spdlog::info("Destroying window...");
     window_to_destroy.reset();
     spdlog::info("Window destroyed successfully");
 
+    spdlog::info("Shutting down SDL...");
     SDL_Quit();
 
     spdlog::info("Shutdown complete!");
@@ -213,7 +331,7 @@ namespace Simulacrum
     }
   }
 
-  void Engine::setFullscreen(bool enabled)
+  void Engine::setFullscreen(const bool enabled)
   {
     if (!window_)
     {
@@ -247,16 +365,14 @@ namespace Simulacrum
 
     setLogicalSize(actual_width, actual_height);
 
-    // TODO Additional handling after window resize
   }
 
   void Engine::onWindowEvent(const SDL_Event& event)
   {
-    // TODO
   }
 
   void Engine::onDisplayChange(const SDL_Event& event)
   {
-    // TODO
   }
+
 }

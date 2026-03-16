@@ -434,7 +434,7 @@ namespace Simulacrum
         )
       {
         // Skip this priority level if bitmask indicates it's empty
-        if (!bitmask & (1 << priority_index))
+        if (!(bitmask & (1 << priority_index)))
         {
           continue;
         }

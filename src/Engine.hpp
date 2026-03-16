@@ -1,9 +1,12 @@
 #ifndef SIMULACRUM_ENGINE_HPP_
 #define SIMULACRUM_ENGINE_HPP_
+
 #include <memory>
 #include <string_view>
 
+#include "TimestepManager.hpp"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_video.h"
 
 namespace Simulacrum
@@ -11,6 +14,7 @@ namespace Simulacrum
   class Engine
   {
   public:
+
     ~Engine() = default;
 
     static Engine& Instance()
@@ -18,6 +22,7 @@ namespace Simulacrum
       static Engine instance;
       return instance;
     }
+
 
     // Engine API
 
@@ -32,6 +37,7 @@ namespace Simulacrum
     void present();
 
     void clean();
+
 
     // Getters & Setters
 
@@ -70,8 +76,18 @@ namespace Simulacrum
     }
 
   private:
+    Engine()
+      : window_width_{ 1280 }
+    , window_height_{ 720 }
+    {}
+
+    // No-copy
+    Engine(const Engine&) = delete;
+    Engine& operator=(const Engine&) = delete;
+
     bool is_running_{ false };
     bool is_fullscreen_{ false };
+    bool is_vsync_requested_{ false };
 
     int window_width_{ 0 };
     int window_height_{ 0 };
@@ -79,17 +95,14 @@ namespace Simulacrum
     int windowed_height_{ 0 };
     int logical_width_{ 0 };
     int logical_height_{ 0 };
+    float dpi_scale_{ 1.0f };
 
+    std::unique_ptr<TimestepManager> timestep_manager_{ nullptr };
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_{ nullptr, SDL_DestroyWindow };
 
     void onWindowResize(const SDL_Event& event);
     void onWindowEvent(const SDL_Event& event);
     void onDisplayChange(const SDL_Event& event);
-
-    Engine()
-      : window_width_{ 1280 }
-      , window_height_{ 720 }
-    {}
   };
 }
 
