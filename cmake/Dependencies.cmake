@@ -203,55 +203,35 @@ function(setup_project_dependencies)
         AUTO  # Use global BUILD_SHARED_LIBS settings
     )
 
-    # # SPIRV-Cross
-    # find_or_fetch_dependency(
-    #     SPIRV-cross
-    #     SPIRV-cross
-    #     "https://github.com/KhronosGroup/SPIRV-Cross.git"
-    #     "MoltenVK-1.1.5"
-    #     "external/SPIRV-cross-MoltenVK-1.1.5"
-    #     AUTO
-    # )
-
-    # # SDL_shadercross
-    # find_or_fetch_dependency(
-    #     SDL3_shadercross
-    #     SDL3_shadercross
-    #     "https://github.com/libsdl-org/SDL_shadercross.git"
-    #     "3a314481ede01f5d966f0e834019942e34c02b82"
-    #     "external/SDL_shadercross-3a31448"
-    #     AUTO
-    # )
-
-    # SDL3_image
-    find_or_fetch_dependency(
-        SDL3_image
-        SDL3_image
-        "https://github.com/libsdl-org/SDL_image.git"
-        "release-3.2.4"
-        "external/SDL_image-release-3.2.4"
-        AUTO
-    )
-
-    # SDL3_mixer
-    find_or_fetch_dependency(
-        SDL3_mixer
-        SDL3_mixer
-        "https://github.com/libsdl-org/SDL_mixer.git"
-        "30c1301055a35ee87b8679279b6fc88e10d28fa3"
-        "external/SDL_mixer-30c1301"
-        AUTO
-    )
-
-    # SDL3_ttf
-    find_or_fetch_dependency(
-        SDL3_ttf
-        SDL3_ttf
-        "https://github.com/libsdl-org/SDL_ttf.git"
-        "release-3.2.2"
-        "external/SDL_ttf-release-3.2.2"
-        AUTO
-    )
+#    # SDL3_image
+#    find_or_fetch_dependency(
+#        SDL3_image
+#        SDL3_image
+#        "https://github.com/libsdl-org/SDL_image.git"
+#        "release-3.2.4"
+#        "external/SDL_image-release-3.2.4"
+#        AUTO
+#    )
+#
+#    # SDL3_mixer
+#    find_or_fetch_dependency(
+#        SDL3_mixer
+#        SDL3_mixer
+#        "https://github.com/libsdl-org/SDL_mixer.git"
+#        "30c1301055a35ee87b8679279b6fc88e10d28fa3"
+#        "external/SDL_mixer-30c1301"
+#        AUTO
+#    )
+#
+#    # SDL3_ttf
+#    find_or_fetch_dependency(
+#        SDL3_ttf
+#        SDL3_ttf
+#        "https://github.com/libsdl-org/SDL_ttf.git"
+#        "release-3.2.2"
+#        "external/SDL_ttf-release-3.2.2"
+#        AUTO
+#    )
 
     # GLM
     find_or_fetch_dependency(

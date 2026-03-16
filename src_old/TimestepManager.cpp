@@ -4,6 +4,7 @@
 
 namespace Simulacrum
 {
+
   TimestepManager::TimestepManager(float target_fps, float fixed_timestep)
     : target_fps_(target_fps)
     , fixed_timestep_(fixed_timestep)
@@ -16,7 +17,7 @@ namespace Simulacrum
     , should_render_(true)
     , first_frame_(true)
   {
-    const auto current_time = std::chrono::high_resolution_clock::now();
+    auto current_time = std::chrono::high_resolution_clock::now();
     frame_start_ = current_time;
     last_frame_time_ = current_time;
 
@@ -124,11 +125,6 @@ namespace Simulacrum
     return last_frame_time_ms_;
   }
 
-  bool TimestepManager::isFrameTimeExcessive() const
-  {
-    return false;
-  }
-
   void TimestepManager::setTargetFPS(float fps)
   {
     if (fps > 0.0f)
@@ -215,8 +211,8 @@ namespace Simulacrum
 
   void TimestepManager::preciseFrameWait(double target_frame_time_ms) const
   {
-    auto target_ns = static_cast<Uint64>(target_frame_time_ms * 1000000.0);
+    Uint64 target_ns = static_cast<Uint64>(target_frame_time_ms * 1000000.0);
     SDL_DelayPrecise(target_ns);
   }
 
-}
+} // namespace Simulacrum

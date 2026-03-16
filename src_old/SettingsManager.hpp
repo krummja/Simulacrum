@@ -1,8 +1,14 @@
-#ifndef SIMULACRUM_SETTINGS_MANAGER_HPP_
-#define SIMULACRUM_SETTINGS_MANAGER_HPP_
+#pragma once
 
+#include "Macros.hpp"
+
+#include <functional>
+#include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -53,5 +59,3 @@ namespace Simulacrum
     SettingsManager() = default;
   };
 }
-
-#endif

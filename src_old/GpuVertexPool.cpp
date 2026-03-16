@@ -27,7 +27,7 @@ namespace Simulacrum
     vertex_size_ = vertex_size;
     max_vertices_ = max_vertices;
 
-    uint32_t buffer_size = vertex_size * static_cast<uint32_t>(max_vertices);
+    const uint32_t buffer_size = vertex_size * static_cast<uint32_t>(max_vertices);
 
     // Create triple-buffered transfer buffers
     for (size_t i = 0; i < FRAME_COUNT; ++i)
@@ -68,9 +68,9 @@ namespace Simulacrum
   {
     gpu_buffer_ = GPUBuffer();
 
-    std::generate(
-      transfer_buffers_.begin(), transfer_buffers_.end(),
-      []() { return GPUTransferBuffer(); }
+    std::ranges::generate(
+      transfer_buffers_,
+      []() -> GPUTransferBuffer { return {}; }
     );
 
     device_ = nullptr;
@@ -142,7 +142,7 @@ namespace Simulacrum
     pending_vertex_count_ = 0;
 
     // Map with cycle=true to handle if previous frame's upload is still in flight
-    mapped_ptr_ = transfer_buffers_[frame_index_].map(true);
+    mapped_ptr_ = transfer_buffers_[frame_index_].map(false);
 
     if (!mapped_ptr_)
     {
@@ -173,14 +173,13 @@ namespace Simulacrum
     mapped_ptr_ = nullptr;
   }
 
-  void GPUVertexPool::upload(SDL_GPUCopyPass* copy_pass)
-  {
+  void GPUVertexPool::upload(SDL_GPUCopyPass* copy_pass) const {
     if (!copy_pass || current_vertex_count_ == 0)
     {
       return;
     }
 
-    SDL_GPUTransferBufferLocation src = transfer_buffers_[frame_index_].asLocation(0);
+    const SDL_GPUTransferBufferLocation src = transfer_buffers_[frame_index_].asLocation(0);
 
     SDL_GPUBufferRegion dst{};
     dst.buffer = gpu_buffer_.get();

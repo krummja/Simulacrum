@@ -1,5 +1,4 @@
 #include "SDL3/SDL_render.h"
-#include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 
 #include "SimulacrumEngine.hpp"
@@ -12,12 +11,9 @@
 #include "StateManager.hpp"
 #include "UIManager.hpp"
 #include "TextureManager.hpp"
-#include "GpuTexture.hpp"
 
 #include "StateLoading.hpp"
 
-#include <cstdlib>
-#include <format>
 #include <future>
 #include <string>
 #include <string_view>
@@ -41,12 +37,6 @@ namespace Simulacrum
     }
 
     spdlog::info("SDL video online");
-
-    // Initialize resource path resolver
-    ResourcePath::init();
-
-    constexpr int DEFAULT_WIDTH = 1280;
-    constexpr int DEFAULT_HEIGHT = 720;
 
     spdlog::info("Loading settings");
     const std::string settings_path = ResourcePath::resolve("res/settings.json");
@@ -277,6 +267,7 @@ namespace Simulacrum
       catch (const std::exception& exc)
       {
         all_tasks_succeeded = false;
+        spdlog::error("Failed to execute all loading tasks: {}", exc.what());
       }
     }
 
@@ -375,48 +366,7 @@ namespace Simulacrum
 
   void SimulacrumEngine::render()
   {
-    float interpolation_alpha = static_cast<float>(timestep_manager_->getInterpolationAlpha());
-
-    auto& gpu_renderer = GPURenderer::Instance();
-    gpu_renderer.beginFrame();
-
-    // Record vertices
-    draw_commands_.clear();
-
-    TextureManager& texture_manager = TextureManager::Instance();
-
-    const TextureData* tex_data = texture_manager.getGPUTextureData("tile_0815");
-    if (!tex_data || !tex_data->texture) return;
-
-    auto& batch = gpu_renderer.getSpriteBatch();
-
-    // ! This appears to be the root of the problem - I believe the Transfer Buffer is not
-    // ! being initialized with the right size information, resulting in missed bindings
-    // ! when attempting to transfer the vertex data from CPU to GPU.
-    auto& vertex_pool = gpu_renderer.getUIVertexPool();
-    auto* write_ptr = static_cast<SpriteVertex*>(vertex_pool.getMappedPtr());
-
-    const auto& texture = tex_data->texture->get();
-    batch.begin(write_ptr, 512, texture, gpu_renderer.getLinearSampler(), 16, 16);
-    batch.draw(0, 0, 16, 16, 10, 10, 16, 16);
-    size_t vertex_count = batch.end();
-
-    // Vertex pool uploads happen in scene pass
-    SDL_GPURenderPass* scene_pass = gpu_renderer.beginScenePass();
-
-    // Handles transition to render pass
-    // Also sets the viewport for the swapchain
-    SDL_GPURenderPass* swapchain_pass = gpu_renderer.beginSwapchainPass();
-
-    float ortho_matrix[16];
-    GPURenderer::createOrthoMatrix(
-      0.0f, static_cast<float>(gpu_renderer.getViewportWidth()),
-      static_cast<float>(gpu_renderer.getViewportHeight()), 0.0f,
-      ortho_matrix
-    );
-    gpu_renderer.pushViewProjection(swapchain_pass, ortho_matrix);
-
-    batch.render(swapchain_pass, gpu_renderer.getUISpritePipeline(), vertex_pool.getGPUBuffer());
+    GPURenderer::Instance().beginFrame();
   }
 
   void SimulacrumEngine::present()

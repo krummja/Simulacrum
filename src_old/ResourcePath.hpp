@@ -1,5 +1,4 @@
-#ifndef RESOURCE_PATH_HPP_
-#define RESOURCE_PATH_HPP_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -76,5 +75,3 @@ namespace Simulacrum
   };
 
 } // namespace Simulacrum
-
-#endif

@@ -2,7 +2,8 @@
 # Project profile
 # ==============================================
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.5...4.3)
+
 project(Simulacrum VERSION 0.1.0 LANGUAGES C CXX)
 
 # ==============================================
@@ -45,8 +46,6 @@ include(cmake/CompileShaders.cmake)
 # ==============================================
 # Setting up project dependencies
 # ==============================================
-
-set(SDLSHADERCROSS_VENDORED ON)
 
 # Call the dependency configuration function (defined in Dependencies.cmake)
 setup_project_dependencies()

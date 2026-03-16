@@ -1,6 +1,6 @@
 #include "SettingsManager.hpp"
-
 #include <spdlog/spdlog.h>
+#include <algorithm>
 #include <fstream>
 #include <nlohmann/json.hpp>
 

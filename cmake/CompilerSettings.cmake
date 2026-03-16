@@ -29,7 +29,7 @@ function(setup_compiler_options TARGET_NAME)
                 -Wextra                 # extra warnings
                 -Wpedantic              # strict ISO C++ warnings
                 -finput-charset=utf-8   # input character encoding
-                -fexec-charset=utf-8    # execuction character encoding
+                -fexec-charset=utf-8    # execution character encoding
                 -std=c++20
         )
     else()

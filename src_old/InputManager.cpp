@@ -1,6 +1,5 @@
 #include "InputManager.hpp"
-#include "Engine.hpp"
-
+#include "SimulacrumEngine.hpp"
 #include <spdlog/spdlog.h>
 #include <glm/glm.hpp>
 #include <algorithm>
@@ -131,7 +130,7 @@ namespace Simulacrum
     // Scale by pixel density to convert window coords to pixel coords.
     float scale = 1.0f;
 
-    SDL_Window* window = Engine::Instance().getWindow();
+    SDL_Window* window = SimulacrumEngine::Instance().getWindow();
     if (window)
     {
       scale = SDL_GetWindowPixelDensity(window);

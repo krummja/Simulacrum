@@ -52,18 +52,18 @@ namespace Simulacrum
     /// @brief Upload vertex data to the GPU buffer.
     /// Must be called during a copy pass.
     /// @param copy_pass Active copy pass
-    void upload(SDL_GPUCopyPass* copy_pass);
+    void upload(SDL_GPUCopyPass* copy_pass) const;
 
-    SDL_GPUBuffer* getGPUBuffer() const { return gpu_buffer_.get(); }
-    size_t getVertexCount() const { return current_vertex_count_; }
-    size_t getMaxVertices() const { return max_vertices_; }
-    uint32_t getVertexSize() const { return vertex_size_; }
-    bool isInitialized() const { return device_ != nullptr; }
+    [[nodiscard]] SDL_GPUBuffer* getGPUBuffer() const { return gpu_buffer_.get(); }
+    [[nodiscard]] size_t getVertexCount() const { return current_vertex_count_; }
+    [[nodiscard]] size_t getMaxVertices() const { return max_vertices_; }
+    [[nodiscard]] uint32_t getVertexSize() const { return vertex_size_; }
+    [[nodiscard]] bool isInitialized() const { return device_ != nullptr; }
 
     /// @brief Get the currently mapped pointer for vertex writes.
     /// Only valid between `beginFrame()` and `endFrame()`.
     /// @return Mapped memory pointer, or nullptr if not mapped
-    void* getMappedPtr() const { return mapped_ptr_; }
+    [[nodiscard]] void* getMappedPtr() const { return mapped_ptr_; }
 
     /// @brief Set the vertex count for manual vertex writing.
     /// Call this if writing vertices directly to `getMappedPtr()` instead of using `SpriteBatch`.
@@ -72,7 +72,7 @@ namespace Simulacrum
 
     /// @brief Get the pending vertex count set by `setWrittenVertexCount()`.
     /// @return Pending vertex count, or 0 if not set
-    size_t getPendingVertexCount() const { return pending_vertex_count_; }
+    [[nodiscard]] size_t getPendingVertexCount() const { return pending_vertex_count_; }
 
   private:
     SDL_GPUDevice* device_{ nullptr };
