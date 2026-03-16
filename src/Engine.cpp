@@ -347,6 +347,21 @@ namespace Simulacrum
     toggleFullscreen();
   }
 
+  void Engine::setGlobalPause(const bool paused)
+  {
+    is_global_paused_ = paused;
+
+    // TODO Pass pause state to all attached managers.
+    if (paused)
+    {
+      spdlog::debug("Engine globally paused - all managers idle");
+    }
+    else
+    {
+      spdlog::debug("Engine globally resumed");
+    }
+  }
+
   void Engine::onWindowResize(const SDL_Event& event)
   {
     int const new_width = event.window.data1;
@@ -369,10 +384,69 @@ namespace Simulacrum
 
   void Engine::onWindowEvent(const SDL_Event& event)
   {
+    switch (event.type)
+    {
+      case SDL_EVENT_WINDOW_MINIMIZED:
+      case SDL_EVENT_WINDOW_OCCLUDED:
+      case SDL_EVENT_WINDOW_HIDDEN:
+      case SDL_EVENT_WINDOW_FOCUS_LOST:
+        if (!is_window_occluded_)
+        {
+          is_window_occluded_ = true;
+          if (timestep_manager_)
+          {
+            timestep_manager_->setSoftwareFrameLimiting(true);
+          }
+        }
+        break;
+
+      case SDL_EVENT_WINDOW_RESTORED:
+      case SDL_EVENT_WINDOW_SHOWN:
+      case SDL_EVENT_WINDOW_EXPOSED:
+      case SDL_EVENT_WINDOW_FOCUS_GAINED:
+        if (is_window_occluded_)
+        {
+          is_window_occluded_ = false;
+          if (timestep_manager_ && is_vsync_requested_)
+          {
+            timestep_manager_->setSoftwareFrameLimiting(false);
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
   }
 
   void Engine::onDisplayChange(const SDL_Event& event)
   {
+    auto event_name = "Unknown";
+
+    switch (event.type)
+    {
+      case SDL_EVENT_DISPLAY_ORIENTATION:
+        event_name = "Orientation Change";
+        break;
+      case SDL_EVENT_DISPLAY_ADDED:
+        event_name = "Display Added";
+        break;
+      case SDL_EVENT_DISPLAY_REMOVED:
+        event_name = "Display Removed";
+        break;
+      case SDL_EVENT_DISPLAY_MOVED:
+        event_name = "Display Moved";
+        break;
+      case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+        event_name = "Content Scale Changed";
+        break;
+      default:
+        break;
+    }
+
+    spdlog::info("Display event detected: {}", event_name);
+
+    // TODO Additional logic on display change
   }
 
 }

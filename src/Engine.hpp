@@ -38,20 +38,33 @@ namespace Simulacrum
 
     void clean();
 
+    void toggleFullscreen();
+
+    void setFullscreen(bool enabled);
+
+    void setGlobalPause(bool paused);
+
 
     // Getters & Setters
 
     bool isRunning() const { return is_running_; }
+
     void setIsRunning(const bool is_running) { is_running_ = is_running; }
 
     bool isFullscreen() const noexcept { return is_fullscreen_; }
-    void toggleFullscreen();
-    void setFullscreen(bool enabled);
+
+    bool isVsyncEnabled() const noexcept { return is_vsync_requested_; }
+
+    bool isGlobalPaused() const noexcept { return is_global_paused_; }
 
     int windowWidth() const { return window_width_; }
+
     int windowHeight() const { return window_height_; }
+
     int windowedWidth() const { return windowed_width_; }
+
     int windowedHeight() const { return windowed_height_; }
+
     void setWindowSize(const int width, const int height)
     {
       window_width_ = width;
@@ -64,7 +77,7 @@ namespace Simulacrum
       }
     }
 
-    void setLogicalSize(int width, int height)
+    void setLogicalSize(const int width, const int height)
     {
       logical_width_ = width;
       logical_height_ = height;
@@ -78,7 +91,7 @@ namespace Simulacrum
   private:
     Engine()
       : window_width_{ 1280 }
-    , window_height_{ 720 }
+      , window_height_{ 720 }
     {}
 
     // No-copy
@@ -87,7 +100,9 @@ namespace Simulacrum
 
     bool is_running_{ false };
     bool is_fullscreen_{ false };
+    bool is_window_occluded_{ false };
     bool is_vsync_requested_{ false };
+    bool is_global_paused_{ false };
 
     int window_width_{ 0 };
     int window_height_{ 0 };
@@ -101,7 +116,9 @@ namespace Simulacrum
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_{ nullptr, SDL_DestroyWindow };
 
     void onWindowResize(const SDL_Event& event);
+
     void onWindowEvent(const SDL_Event& event);
+
     void onDisplayChange(const SDL_Event& event);
   };
 }
