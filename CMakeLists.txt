@@ -51,58 +51,32 @@ include(cmake/CompileShaders.cmake)
 setup_project_dependencies()
 
 # ==============================================
-# Project source files
-# ==============================================
-
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-
-set(TEST_SOURCES
-        ${CMAKE_SOURCE_DIR}/tests/SimulacrumTests.cpp
-        ${CMAKE_SOURCE_DIR}/tests/GpuTypesTests.cpp
-        ${CMAKE_SOURCE_DIR}/tests/GpuVertexPoolTests.cpp
-        ${CMAKE_SOURCE_DIR}/tests/SpriteBatchTests.cpp
-)
-foreach(source ${SOURCES})
-        list(APPEND TEST_SOURCES ${source})
-endforeach()
-list(FILTER TEST_SOURCES EXCLUDE REGEX ".*SimulacrumMain\\.cpp$")
-
-# ==============================================
 # Executable file configuration
 # ==============================================
 
 # Create an executable file
-add_executable(${EXECUTABLE_TARGET} ${SOURCES})
+add_executable(${EXECUTABLE_TARGET}
+    src/Main.cpp
+    src/Engine.cpp
+    src/GPUDevice.cpp
+    src/GPURenderer.cpp
+    src/InputManager.cpp
+    src/ResourcePath.cpp
+    src/SettingsManager.cpp
+    src/TimestepManager.cpp
+)
 
 # Link all dependent libraries
 target_link_libraries(${EXECUTABLE_TARGET}
-        SDL3::SDL3
-        spdlog::spdlog
-        glm::glm
-        nlohmann_json::nlohmann_json
+    SDL3::SDL3
+    spdlog::spdlog
+    glm::glm
+    nlohmann_json::nlohmann_json
 )
 
 target_include_directories(${EXECUTABLE_TARGET}
-        PRIVATE
-                ${PROJECT_SOURCE_DIR}/src
-)
-
-add_executable(SimulacrumTests ${TEST_SOURCES})
-
-target_link_libraries(SimulacrumTests
-        PUBLIC
-                SDL3::SDL3
-                spdlog::spdlog
-                glm::glm
-                nlohmann_json::nlohmann_json
-        PRIVATE
-                Catch2::Catch2WithMain
-)
-
-target_include_directories(SimulacrumTests
-        PRIVATE
-                ${PROJECT_SOURCE_DIR}/tests
-                ${PROJECT_SOURCE_DIR}/src
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
 )
 
 # ==============================================

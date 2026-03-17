@@ -1,5 +1,5 @@
-#include "TimestepManager.hpp"
 #include "ThreadSystem.hpp"
+#include "TimestepManager.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -29,6 +29,7 @@ bool InitializeThreadSystem()
 
   return true;
 }
+
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {

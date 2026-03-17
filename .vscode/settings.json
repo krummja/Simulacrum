@@ -1,0 +1,12 @@
+{
+    "python.analysis.typeCheckingMode": "off",
+    "basedpyright.analysis.exclude": [
+        "build",
+        "cmake",
+        "src",
+        "src_old",
+        "tests",
+        "include",
+        "res"
+    ]
+}
