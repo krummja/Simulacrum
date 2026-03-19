@@ -62,6 +62,9 @@ namespace Simulacrum
     Uint32 swapchain_width_{ 0 };
     Uint32 swapchain_height_{ 0 };
 
+    Uint32 viewport_width_{ 0 };
+    Uint32 viewport_height_{ 0 };
+    bool is_initialized_{false};
   };
 }
 
