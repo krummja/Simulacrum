@@ -7,7 +7,7 @@
 
 #include "ResourcePath.hpp"
 #include "SettingsManager.hpp"
-#include "GpuDevice.hpp"
+#include "GPUDevice.hpp"
 #include "GPURenderer.hpp"
 #include "InputManager.hpp"
 #include "ThreadSystem.hpp"

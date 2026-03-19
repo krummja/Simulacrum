@@ -8,6 +8,23 @@
 
 namespace Simulacrum
 {
+  typedef struct PositionVertex
+  {
+    float x, y, z;
+  } PositionVertex;
+
+  typedef struct PositionColorVertex
+  {
+    float x, y, z;
+    Uint8 r, g, b, a;
+  } PositionColorVertex;
+
+  typedef struct PositionTextureVertex
+  {
+    float x, y, z;
+    float u, v;
+  } PositionTextureVertex;
+
   class GPURenderer
   {
   public:
@@ -54,11 +71,18 @@ namespace Simulacrum
     SDL_GPUDevice* device_{ nullptr };
     SDL_Window* window_{ nullptr };
 
+    SDL_GPUGraphicsPipeline* pipeline_{ nullptr };
+    SDL_GPUTransferBuffer* transfer_buffer_{ nullptr };
+    SDL_GPUSampler* sampler_{ nullptr };
+    SDL_GPUBuffer* vertex_buffer_{ nullptr };
+    SDL_GPUBuffer* index_buffer_{ nullptr };
     SDL_GPUCommandBuffer* command_buffer_{ nullptr };
     SDL_GPUCopyPass* copy_pass_{ nullptr };
     SDL_GPURenderPass* render_pass_{ nullptr };
 
+    SDL_GPUTexture* scene_texture_{ nullptr };
     SDL_GPUTexture* swapchain_texture_{ nullptr };
+    SDL_GPUTexture* test_texture_{ nullptr };
     Uint32 swapchain_width_{ 0 };
     Uint32 swapchain_height_{ 0 };
 
