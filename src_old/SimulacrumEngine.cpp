@@ -366,11 +366,60 @@ namespace Simulacrum
 
   void SimulacrumEngine::render()
   {
+    // Acquires command buffer
+    // Acquires swapchain texture
+    // Calls `beginFrame()` on all vertex pools
+    // Begins the copy pass
     GPURenderer::Instance().beginFrame();
+
+    // ! Must record vertices in here
+    auto& sprite_batch = GPURenderer::Instance().getSpriteBatch();
+    auto& vertex_pool = GPURenderer::Instance().getSpriteVertexPool();
+
+    auto* write_ptr = static_cast<SpriteVertex*>(vertex_pool.getMappedPtr());
+
+    auto* tex = TextureManager::Instance().getGPUTexture("tile_0000");
+
+    sprite_batch.begin(
+      write_ptr,
+      vertex_pool.getMaxVertices(),
+      tex->get(),
+      GPURenderer::Instance().getNearestSampler(),
+      tex->getWidth(),
+      tex->getHeight()
+    );
+
+    sprite_batch.draw(0, 0, 16, 16, 0, 0, 16, 16, 255, 255, 255, 255);
+
+    // Calls `endFrame()` on all vertex pools
+    // Uploads vertex data to GPU
+    // Ends the copy pass
+    // Begins the scene render pass
+    auto* scene_pass = GPURenderer::Instance().beginScenePass();
+
+    // ! Should render scene contents in here
+
+    sprite_batch.render(
+      scene_pass,
+      GPURenderer::Instance().getSpriteAlphaPipeline(),
+      vertex_pool.getGPUBuffer()
+    );
+
+    // Ends the scene render pass
+    // Begins the swapchain pass
+    auto* swapchain_pass = GPURenderer::Instance().beginSwapchainPass();
+
+    // GPURenderer::Instance().renderComposite(swapchain_pass);
+
+    sprite_batch.end();
+
+    // ! Should render UI here
   }
 
   void SimulacrumEngine::present()
   {
+    // Ends the swapchain pass
+    // Submits the command buffer
     GPURenderer::Instance().endFrame();
   }
 
@@ -399,6 +448,15 @@ namespace Simulacrum
     // TODO Double check cleanup after init has been finished
 
     spdlog::info("Starting shutdown sequence...");
+
+    spdlog::info("Cleaning up UI Manager...");
+    UIManager::Instance().clean();
+
+    spdlog::info("Cleaning up Input Manager...");
+    InputManager::Instance().clean();
+
+    spdlog::info("Cleaning up Texture Manager");
+    TextureManager::Instance().clean();
 
     auto window_to_destroy = std::move(window_);
 

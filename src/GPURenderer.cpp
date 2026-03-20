@@ -99,12 +99,6 @@ namespace Simulacrum
     index_buffer_info.size = sizeof(Uint16) * 6;
     index_buffer_ = SDL_CreateGPUBuffer(device_, &index_buffer_info);
 
-    // Transfer Buffer
-    SDL_GPUTransferBufferCreateInfo transfer_buffer_info{};
-    transfer_buffer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-    transfer_buffer_info.size = (sizeof(PositionTextureVertex) * 4) + (sizeof(Uint16) * 6);
-    transfer_buffer_ = SDL_CreateGPUTransferBuffer(device_, &transfer_buffer_info);
-
     // Test Texture
     SDL_Surface* img_data = LoadPNGTexture("tile_0000.png", 4);
 
@@ -127,6 +121,32 @@ namespace Simulacrum
     sampler_info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
     sampler_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
     sampler_ = SDL_CreateGPUSampler(device_, &sampler_info);
+
+    // Transfer Buffer
+    SDL_GPUTransferBufferCreateInfo transfer_buffer_info{};
+    transfer_buffer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    transfer_buffer_info.size = (sizeof(PositionTextureVertex) * 4) + (sizeof(Uint16) * 6);
+    transfer_buffer_ = SDL_CreateGPUTransferBuffer(device_, &transfer_buffer_info);
+
+    PositionTextureVertex* transfer_data = static_cast<PositionTextureVertex*>(
+      SDL_MapGPUTransferBuffer(device_, transfer_buffer_, false)
+    );
+
+    transfer_data[0] = { -1,  1, 0, 0, 0 };
+    transfer_data[1] = {  1,  1, 0, 4, 0 };
+    transfer_data[2] = {  1, -1, 0, 4, 4 };
+    transfer_data[3] = { -1, -1, 0, 0, 4 };
+
+    Uint16* index_data = (Uint16*) &transfer_data[4];
+
+    index_data[0] = 0;
+    index_data[1] = 1;
+    index_data[2] = 2;
+    index_data[3] = 0;
+    index_data[4] = 2;
+    index_data[5] = 3;
+
+    SDL_UnmapGPUTransferBuffer(device_, transfer_buffer_);
 
     is_initialized_ = true;
     return true;

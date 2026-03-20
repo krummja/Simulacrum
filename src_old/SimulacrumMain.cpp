@@ -89,7 +89,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     while (ts.shouldUpdate())
     {
-      engine.update(ts.getUpdateDeltaTime());
+      float dt = ts.getUpdateDeltaTime();
+      engine.update(dt);
     }
 
     engine.render();

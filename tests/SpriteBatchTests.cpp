@@ -56,7 +56,7 @@ TEST_CASE_PERSISTENT_FIXTURE(SpriteBatchTestFixture, "Sprite Batching Tests")
     Simulacrum::SpriteBatch batch;
     batch.init(device->get());
 
-    std::vector<Simulacrum::SpriteVertex> vertices(Simulacrum::SpriteBatch::MAX_VERTICES);
+    std::vector<Simulacrum::SpriteVertex> vertices{Simulacrum::SpriteBatch::MAX_VERTICES};
     batch.begin(vertices.data(), vertices.size(), nullptr, nullptr, 256.0f, 256.0f);
 
     // Draw sprite at (100, 200) with size (32, 32)

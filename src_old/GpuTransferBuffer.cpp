@@ -115,15 +115,8 @@ namespace Simulacrum
 
   void GPUTransferBuffer::unmap()
   {
-    if (!buffer_ || !device_)
-    {
-      return;
-    }
-
-    if (!mapped_)
-    {
-      return;
-    }
+    if (!buffer_ || !device_) return;
+    if (!mapped_) return;
 
     SDL_UnmapGPUTransferBuffer(device_, buffer_);
     mapped_ = false;

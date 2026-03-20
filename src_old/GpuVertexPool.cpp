@@ -142,7 +142,7 @@ namespace Simulacrum
     pending_vertex_count_ = 0;
 
     // Map with cycle=true to handle if previous frame's upload is still in flight
-    mapped_ptr_ = transfer_buffers_[frame_index_].map(false);
+    mapped_ptr_ = transfer_buffers_[frame_index_].map(true);
 
     if (!mapped_ptr_)
     {
