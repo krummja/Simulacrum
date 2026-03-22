@@ -1,8 +1,8 @@
-#include "GPURenderer.hpp"
 #include "ResourcePath.hpp"
-#include "GPUShaderManager.hpp"
-#include "Common.hpp"
-
+#include "GpuRenderer.hpp"
+#include "GpuShaderManager.hpp"
+#include "GpuUtils.hpp"
+#include "TextureManager.hpp"
 #include <cstring>
 #include <format>
 #include <spdlog/spdlog.h>
@@ -10,174 +10,750 @@
 
 namespace Simulacrum
 {
+
+  GPURenderer& GPURenderer::Instance()
+  {
+    static GPURenderer instance;
+    return instance;
+  }
+
   bool GPURenderer::init()
   {
-    if (is_initialized_)
+    if (initialized_)
     {
       spdlog::warn("GPURenderer already initialized");
       return true;
     }
 
     auto& gpu_device = GPUDevice::Instance();
+    if (!gpu_device.isInitialized())
+    {
+      spdlog::error("GPURenderer::init: GPUDevice not initialized");
+      return false;
+    }
 
     device_ = gpu_device.get();
     window_ = gpu_device.getWindow();
 
+    // Get window size for viewport (logical size - matches swapchain)
     int w = 0;
     int h = 0;
-
     SDL_GetWindowSize(window_, &w, &h);
-    viewport_width_ = static_cast<Uint32>(w);
-    viewport_height_ = static_cast<Uint32>(h);
+    viewport_width_ = static_cast<uint32_t>(w);
+    viewport_height_ = static_cast<uint32_t>(h);
 
+    // Initialize shader manager
     if (!GPUShaderManager::Instance().init(device_))
     {
-      spdlog::error("GPURenderer: failed to initialize shader manager.");
+      spdlog::error("GPURenderer: failed to init shader manager");
       return false;
     }
 
-    // Create pipeline
+    // Create samplers
+    nearest_sampler_ = GPUSampler::createNearest(device_);
+    linear_sampler_ = GPUSampler::createLinear(device_);
 
-    /// Shaders
-    SDL_GPUShader* vertex_shader = GPUShaderManager::Instance().getShader("sprite.vert");
-    SDL_GPUShader* fragment_shader = GPUShaderManager::Instance().getShader("sprite.frag");
+    if (!nearest_sampler_.isValid() || !linear_sampler_.isValid())
+    {
+      spdlog::error("GPURenderer: failed to create samplers");
+      cleanupPartialInit();
+      return false;
+    }
 
-    /// Swapchain Format
-    SDL_GPUTextureFormat swapchain_format = SDL_GetGPUSwapchainTextureFormat(device_, window_);
+    // Create scene texture
+    if (!createSceneTexture())
+    {
+      spdlog::error("GPURenderer: failed to create scene texture");
+      cleanupPartialInit();
+      return false;
+    }
 
-    /// Vertex Input State
-    SDL_GPUVertexInputState vertex_input_state{};
+    spdlog::debug("GPURenderer: Scene Texture created successfully");
 
-    /// - Vertex Buffer Descriptions
-    std::array<SDL_GPUVertexBufferDescription, 1> vertex_buffers{};
+    // Load shader and create pipelines
+    if (!loadShaders())
+    {
+      spdlog::error("GPURenderer: failed to create shaders");
+      cleanupPartialInit();
+      return false;
+    }
 
-    vertex_buffers[0].slot = 0;
-    vertex_buffers[0].pitch = sizeof(PositionTextureVertex);
-    vertex_buffers[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
-    vertex_buffers[0].instance_step_rate = 0;
+    spdlog::debug("GPURenderer: Shaders created successfully");
 
-    /// - Vertex Attributes
-    std::array<SDL_GPUVertexAttribute, 4> vertex_attributes{};
+    if (!createPipelines())
+    {
+      spdlog::error("GPURenderer: failed to create pipelines");
+      cleanupPartialInit();
+      return false;
+    }
 
-    vertex_attributes[0].location = 0;
-    vertex_attributes[0].buffer_slot = 0;
-    vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-    vertex_attributes[0].offset = 0;
+    spdlog::debug("GPURenderer: Pipelines created successfully");
 
-    vertex_attributes[1].location = 1;
-    vertex_attributes[1].buffer_slot = 0;
-    vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
-    vertex_attributes[1].offset = sizeof(float) * 3;
+    // Initialize vertex pools
+    if (!sprite_vertex_pool_.init(device_, sizeof(SpriteVertex), 300000))
+    {
+      spdlog::error("GPURenderer: failed to init sprite vertex pool");
+      cleanupPartialInit();
+      return false;
+    }
 
-    vertex_input_state.num_vertex_buffers = 1;
-    vertex_input_state.vertex_buffer_descriptions = vertex_buffers.data();
-    vertex_input_state.num_vertex_attributes = 2;
-    vertex_input_state.vertex_attributes = vertex_attributes.data();
+    spdlog::debug("GPURenderer: sprite vertex pool initialized");
 
-    /// Target Info
-    SDL_GPUColorTargetDescription swapchain_target{};
-    swapchain_target.format = swapchain_format;
+    if (!entity_vertex_pool_.init(device_, sizeof(SpriteVertex), 1000))
+    {
+      spdlog::error("GPURenderer: failed to init entity vertex pool");
+      cleanupPartialInit();
+      return false;
+    }
 
-    // Compose Pipeline Info
-    SDL_GPUGraphicsPipelineCreateInfo pipeline_info{};
-    pipeline_info.vertex_shader = vertex_shader;
-    pipeline_info.fragment_shader = fragment_shader;
-    pipeline_info.vertex_input_state = vertex_input_state;
-    pipeline_info.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-    pipeline_info.target_info.color_target_descriptions = &swapchain_target;
-    pipeline_ = SDL_CreateGPUGraphicsPipeline(device_, &pipeline_info);
+    spdlog::debug("GPURenderer: entity vertex pool initialized");
 
-    // Vertex Buffer
-    SDL_GPUBufferCreateInfo vertex_buffer_info{};
-    vertex_buffer_info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
-    vertex_buffer_info.size = sizeof(PositionTextureVertex) * 4;
-    vertex_buffer_ = SDL_CreateGPUBuffer(device_, &vertex_buffer_info);
+    if (!primitive_vertex_pool_.init(device_, sizeof(ColorVertex), 10000))
+    {
+      spdlog::error("GPURenderer: failed to init primitive vertex pool");
+      cleanupPartialInit();
+      return false;
+    }
 
-    // Index Buffer
-    SDL_GPUBufferCreateInfo index_buffer_info{};
-    index_buffer_info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
-    index_buffer_info.size = sizeof(Uint16) * 6;
-    index_buffer_ = SDL_CreateGPUBuffer(device_, &index_buffer_info);
+    spdlog::debug("GPURenderer: primitive vertex pool initialized");
 
-    // Test Texture
-    SDL_Surface* img_data = LoadPNGTexture("tile_0000.png", 4);
+    if (!ui_vertex_pool_.init(device_, sizeof(SpriteVertex), 4000))
+    {
+      spdlog::error("GPURenderer: failed to init UI vertex pool");
+      cleanupPartialInit();
+      return false;
+    }
 
-    SDL_GPUTextureCreateInfo texture_info{};
-    texture_info.type = SDL_GPU_TEXTURETYPE_2D;
-    texture_info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    texture_info.width = img_data->w;
-    texture_info.height = img_data->h;
-    texture_info.layer_count_or_depth = 1;
-    texture_info.num_levels = 1;
-    texture_info.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    test_texture_ = SDL_CreateGPUTexture(device_, &texture_info);
+    spdlog::debug("GPURenderer: ui vertex pool initialized");
 
-    // Sampler
-    SDL_GPUSamplerCreateInfo sampler_info{};
-    sampler_info.min_filter = SDL_GPU_FILTER_NEAREST;
-    sampler_info.mag_filter = SDL_GPU_FILTER_NEAREST;
-    sampler_info.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
-    sampler_info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    sampler_info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    sampler_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    sampler_ = SDL_CreateGPUSampler(device_, &sampler_info);
+    // Initialize sprite batches
+    if (!sprite_batch_.init(device_))
+    {
+      spdlog::error("GPURenderer: failed to init sprite batch");
+      cleanupPartialInit();
+      return false;
+    }
 
-    // Transfer Buffer
-    SDL_GPUTransferBufferCreateInfo transfer_buffer_info{};
-    transfer_buffer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-    transfer_buffer_info.size = (sizeof(PositionTextureVertex) * 4) + (sizeof(Uint16) * 6);
-    transfer_buffer_ = SDL_CreateGPUTransferBuffer(device_, &transfer_buffer_info);
-
-    PositionTextureVertex* transfer_data = static_cast<PositionTextureVertex*>(
-      SDL_MapGPUTransferBuffer(device_, transfer_buffer_, false)
-    );
-
-    transfer_data[0] = { -1,  1, 0, 0, 0 };
-    transfer_data[1] = {  1,  1, 0, 4, 0 };
-    transfer_data[2] = {  1, -1, 0, 4, 4 };
-    transfer_data[3] = { -1, -1, 0, 0, 4 };
-
-    Uint16* index_data = (Uint16*) &transfer_data[4];
-
-    index_data[0] = 0;
-    index_data[1] = 1;
-    index_data[2] = 2;
-    index_data[3] = 0;
-    index_data[4] = 2;
-    index_data[5] = 3;
-
-    SDL_UnmapGPUTransferBuffer(device_, transfer_buffer_);
-
-    is_initialized_ = true;
+    initialized_ = true;
+    spdlog::info("GPURenderer initialized: {}x{}", viewport_width_, viewport_height_);
     return true;
   }
 
   void GPURenderer::shutdown()
   {
+    if (!initialized_)
+    {
+      return;
+    }
 
+    // Release sprite batches
+    sprite_batch_.shutdown();
+    entity_batch_.shutdown();
+
+    // Release vertex pools
+    sprite_vertex_pool_.shutdown();
+    entity_vertex_pool_.shutdown();
+    // particle vertex pool
+    primitive_vertex_pool_.shutdown();
+    ui_vertex_pool_.shutdown();
+
+    // Release pipelines
+    sprite_opaque_pipeline_.release();
+    sprite_alpha_pipeline_.release();
+    // particle pipeline
+    primitive_pipeline_.release();
+    composite_pipeline_.release();
+    ui_sprite_pipeline_.release();
+    ui_primitive_pipeline_.release();
+
+    // Release textures and samplers
+    scene_texture_.reset();
+    nearest_sampler_ = GPUSampler();
+    linear_sampler_ = GPUSampler();
+
+    // Shutdown shader manager
+    GPUShaderManager::Instance().shutdown();
+
+    device_ = nullptr;
+    window_ = nullptr;
+    initialized_ = false;
+
+    spdlog::info("GPURenderer shutdown complete");
+  }
+
+  void GPURenderer::cleanupPartialInit()
+  {
+    sprite_batch_.shutdown();
+    entity_batch_.shutdown();
+
+    // Release vertex pools
+    sprite_vertex_pool_.shutdown();
+    entity_vertex_pool_.shutdown();
+    // particle vertex pool
+    primitive_vertex_pool_.shutdown();
+    ui_vertex_pool_.shutdown();
+
+    // Release pipelines
+    sprite_opaque_pipeline_.release();
+    sprite_alpha_pipeline_.release();
+    // particle pipeline
+    primitive_pipeline_.release();
+    composite_pipeline_.release();
+    ui_sprite_pipeline_.release();
+    ui_primitive_pipeline_.release();
+
+    // Release textures and samplers
+    scene_texture_.reset();
+    nearest_sampler_ = GPUSampler();
+    linear_sampler_ = GPUSampler();
+
+    // Shutdown shader manager
+    GPUShaderManager::Instance().shutdown();
+
+    device_ = nullptr;
+    window_ = nullptr;
   }
 
   void GPURenderer::beginFrame()
   {
-    // Acquire command buffer
+    if (!initialized_)
+    {
+      return;
+    }
 
-    // Acquire swapchain texture
+    command_buffer_ = SDL_AcquireGPUCommandBuffer(device_);
 
-    // Begin Copy Pass
+    if (!command_buffer_)
+    {
+      spdlog::error("Failed to acquire GPU command buffer: {}", SDL_GetError());
+      return;
+    }
+
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(
+      command_buffer_,
+      window_,
+      &swapchain_texture_,
+      &swapchain_width_,
+      &swapchain_height_
+    ))
+    {
+      spdlog::error("Failed to acquire swapchain texture: {}", SDL_GetError());
+      swapchain_texture_ = nullptr;
+      SDL_CancelGPUCommandBuffer(command_buffer_);
+      command_buffer_ = nullptr;
+      return;
+    }
+
+    if (!swapchain_texture_)
+    {
+      SDL_CancelGPUCommandBuffer(command_buffer_);
+      command_buffer_ = nullptr;
+      return;
+    }
+
+    // Sync viewport to swapchain size (authoritative source from resize events)
+    if (swapchain_width_ != viewport_width_ || swapchain_height_ != viewport_height_)
+    {
+      spdlog::info("Swapchain size changed: {}x{} -> {}x{}",
+        viewport_width_, viewport_height_,
+        swapchain_width_, swapchain_height_
+      );
+
+      updateViewport(swapchain_width_, swapchain_height_);
+    }
+
+    // Begin vertex pool frames (maps transfer buffers)
+    sprite_vertex_pool_.beginFrame();
+    entity_vertex_pool_.beginFrame();
+    primitive_vertex_pool_.beginFrame();
+    ui_vertex_pool_.beginFrame();
+
+    copy_pass_ = SDL_BeginGPUCopyPass(command_buffer_);
   }
 
   SDL_GPURenderPass* GPURenderer::beginScenePass()
   {
-    return nullptr;
+    if (!command_buffer_)
+    {
+      return nullptr;
+    }
+
+    // End copy pass
+    if (copy_pass_)
+    {
+      // Process pending texture uploads.
+      TextureManager::Instance().processPendingUploads(copy_pass_);
+
+      // End vertex pool frames (unmaps buffers for upload)
+      // Use SpriteBatch count if available, otherwise us pending count from direct writes
+      size_t sprite_vertex_count = sprite_batch_.getVertexCount();
+      if (sprite_vertex_count == 0)
+      {
+        sprite_vertex_count = sprite_vertex_pool_.getPendingVertexCount();
+      }
+      sprite_vertex_pool_.endFrame(sprite_vertex_count);
+
+      // End entity vertex pool (uses entity batch count or pending count)
+      size_t entity_vertex_count = entity_batch_.getVertexCount();
+      if (entity_vertex_count == 0)
+      {
+        entity_vertex_count = entity_vertex_pool_.getPendingVertexCount();
+      }
+      entity_vertex_pool_.endFrame(entity_vertex_count);
+
+      // End primitive vertex pool (uses pending count from UIManager writes)
+      size_t primitive_vertex_count = primitive_vertex_pool_.getPendingVertexCount();
+      primitive_vertex_pool_.endFrame(primitive_vertex_count);
+
+      // End of UI vertex pool (uses pending count from direct writes)
+      size_t ui_vertex_count = ui_vertex_pool_.getPendingVertexCount();
+      ui_vertex_pool_.endFrame(ui_vertex_count);
+
+      // Upload vertex data
+      sprite_vertex_pool_.upload(copy_pass_);
+      entity_vertex_pool_.upload(copy_pass_);
+      primitive_vertex_pool_.upload(copy_pass_);
+      ui_vertex_pool_.upload(copy_pass_);
+
+      SDL_EndGPUCopyPass(copy_pass_);
+      copy_pass_ = nullptr;
+    }
+
+    // Begin scene render pass
+    SDL_GPUColorTargetInfo color_target = scene_texture_->asColorTarget(
+      SDL_GPU_LOADOP_CLEAR,
+      { 0.12f, 0.12f, 0.12f, 1.0f }
+    );
+
+    current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);
+
+    // Set viewport to match scene texture dimensions
+    // Scene texture is 3x viewport for zoom headroom
+    uint32_t scene_w = scene_texture_->getWidth();
+    uint32_t scene_h = scene_texture_->getHeight();
+
+    SDL_GPUViewport viewport{};
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.w = static_cast<float>(scene_w);
+    viewport.h = static_cast<float>(scene_h);
+    viewport.min_depth = 0.0f;
+    viewport.max_depth = 1.0f;
+    SDL_SetGPUViewport(current_pass_, &viewport);
+
+    return current_pass_;
   }
 
   SDL_GPURenderPass* GPURenderer::beginSwapchainPass()
   {
-    return nullptr;
+    if (!command_buffer_)
+    {
+      return nullptr;
+    }
+
+    // End scene pass
+    if (current_pass_)
+    {
+      SDL_EndGPURenderPass(current_pass_);
+      current_pass_ = nullptr;
+    }
+
+    if (!swapchain_texture_)
+    {
+      return nullptr;
+    }
+
+    SDL_GPUColorTargetInfo color_target{};
+    color_target.texture = swapchain_texture_;
+    color_target.load_op = SDL_GPU_LOADOP_CLEAR;
+    color_target.store_op = SDL_GPU_STOREOP_STORE;
+    color_target.clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    current_pass_ = SDL_BeginGPURenderPass(command_buffer_, &color_target, 1, nullptr);
+
+    SDL_GPUViewport viewport{};
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.w = static_cast<float>(swapchain_width_);
+    viewport.h = static_cast<float>(swapchain_height_);
+    viewport.min_depth = 0.0f;
+    viewport.max_depth = 1.0f;
+    SDL_SetGPUViewport(current_pass_, &viewport);
+
+    return current_pass_;
   }
 
   void GPURenderer::endFrame()
   {
+    if (!command_buffer_)
+    {
+      return;
+    }
 
+    // End active render pass
+    if (current_pass_)
+    {
+      SDL_EndGPURenderPass(current_pass_);
+      current_pass_ = nullptr;
+    }
+
+    // End copy pass if still active
+    if (copy_pass_)
+    {
+      SDL_EndGPUCopyPass(copy_pass_);
+      copy_pass_ = nullptr;
+    }
+
+    // Submit command buffer (measure to detect backpressure)
+    SDL_SubmitGPUCommandBuffer(command_buffer_);
+
+    command_buffer_ = nullptr;
+    swapchain_texture_ = nullptr;
   }
-}
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getPrimitivePipeline() const
+  {
+    return primitive_pipeline_.get();
+  }
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getUISpritePipeline() const
+  {
+    return ui_sprite_pipeline_.get();
+  }
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getUIPrimitivePipeline() const
+  {
+    return ui_primitive_pipeline_.get();
+  }
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getCompositePipeline() const
+  {
+    return composite_pipeline_.get();
+  }
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getSpriteOpaquePipeline() const
+  {
+    return sprite_opaque_pipeline_.get();
+  }
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getSpriteAlphaPipeline() const
+  {
+    return sprite_alpha_pipeline_.get();
+  }
+
+  SDL_GPUGraphicsPipeline* GPURenderer::getParticlePipeline() const
+  {
+    return particle_pipeline_.get();
+  }
+
+  void GPURenderer::updateViewport(uint32_t width, uint32_t height)
+  {
+    if (width == 0 || height == 0)
+    {
+      spdlog::warn("GPURenderer::updateViewport() ignored invalid size {}x{}", width, height);
+      return;
+    }
+
+    if (width == viewport_width_ && height == viewport_height_)
+    {
+      return;
+    }
+
+    uint32_t old_width = viewport_width_;
+    uint32_t old_height = viewport_height_;
+
+    viewport_width_ = width;
+    viewport_height_ = height;
+
+    if (!createSceneTexture())
+    {
+      spdlog::error("GPURenderer::updateViewport() failed to recreate scene texture for {}x{}", width, height);
+      viewport_width_ = old_width;
+      viewport_height_ = old_height;
+      return;
+    }
+  }
+
+  void GPURenderer::pushViewProjection(SDL_GPURenderPass* pass, const float* view_projection)
+  {
+    if (!pass || !view_projection)
+    {
+      spdlog::error("GPURenderer::pushViewProjection: missing render pass or view projection");
+      return;
+    }
+
+    SDL_PushGPUVertexUniformData(command_buffer_, 0, view_projection, sizeof(float) * 16);
+  }
+
+  void GPURenderer::pushCompositeUniforms(SDL_GPURenderPass* pass, float zoom, float subpixelX, float subpixelY)
+  {
+    if (!pass)
+    {
+      spdlog::error("GPURenderer::pushCompositeUniforms: missing render pass");
+      return;
+    }
+
+    CompositeUBO ubo{};
+    ubo.subPixelOffsetX = subpixelX;
+    ubo.subPixelOffsetY = subpixelY;
+    ubo.zoom = zoom;
+    ubo._pad0 = 0.0f;
+    ubo._pad1 = 0.0f;
+    ubo._pad2 = 0.0f;
+    ubo._pad3 = 0.0f;
+    ubo._pad4 = 0.0f;
+
+    SDL_PushGPUFragmentUniformData(command_buffer_, 0, &ubo, sizeof(CompositeUBO));
+  }
+
+  void GPURenderer::setCompositeParams(float zoom, float subpixelX, float subpixelY)
+  {
+    composite_zoom_ = zoom;
+    composite_subpixel_x_ = subpixelX;
+    composite_subpixel_y_ = subpixelY;
+  }
+
+  void GPURenderer::renderComposite(SDL_GPURenderPass* pass)
+  {
+    if (!pass || !scene_texture_ || !scene_texture_->isValid())
+    {
+      spdlog::error("GPURenderer::renderComposite: missing pass or scene texture");
+      return;
+    }
+
+    // Bind the composite pipeline
+    SDL_BindGPUGraphicsPipeline(pass, composite_pipeline_.get());
+
+    // Bind scene texture with linear sampler for smooth compositing
+    SDL_GPUTextureSamplerBinding tex_sampler{};
+    tex_sampler.texture = scene_texture_->get();
+    tex_sampler.sampler = linear_sampler_.get();
+    SDL_BindGPUFragmentSamplers(pass, 0, &tex_sampler, 1);
+
+    // Push composite uniforms (using stored params)
+    pushCompositeUniforms(pass, composite_zoom_, composite_subpixel_x_, composite_subpixel_y_);
+
+    // Draw fullscreen triangle (3 vertices, no vertex buffer needed)
+    // The composite vertex shader uses gl_VertexIndex to generate positions
+    SDL_DrawGPUPrimitives(pass, 3, 1, 0, 0);
+  }
+
+  void GPURenderer::createOrthoMatrix(float left, float right, float bottom, float top, float* out)
+  {
+    std::memset(out, 0, sizeof(float) * 16);
+
+    out[0] = 2.0f / (right - left);
+    out[5] = 2.0f / (top - bottom);
+    out[10] = -1.0f;
+    out[12] = -(right + left) / (right - left);
+    out[13] = -(top + bottom) / (top - bottom);
+    out[15] = 1.0f;
+  }
+
+  bool GPURenderer::loadShaders()
+  {
+    auto& shader_manager = GPUShaderManager::Instance();
+
+    ShaderInfo sprite_vert_info{};
+    sprite_vert_info.num_samplers = 0;
+    sprite_vert_info.num_uniform_buffers = 1;
+
+    ShaderInfo sprite_frag_info{};
+    sprite_frag_info.num_samplers = 1;
+    sprite_frag_info.num_uniform_buffers = 0;
+
+    ShaderInfo color_vert_info{};
+    color_vert_info.num_samplers = 0;
+    color_vert_info.num_uniform_buffers = 1;
+
+    ShaderInfo color_frag_info{};
+    color_frag_info.num_samplers = 1;
+    color_frag_info.num_uniform_buffers = 0;
+
+    ShaderInfo composite_vert_info{};
+    composite_vert_info.num_samplers = 0;
+    composite_vert_info.num_uniform_buffers = 1;
+
+    ShaderInfo composite_frag_info{};
+    composite_frag_info.num_samplers = 1;
+    composite_frag_info.num_uniform_buffers = 1;
+
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/sprite.vert"),
+        SDL_GPU_SHADERSTAGE_VERTEX,
+        sprite_vert_info
+      )) return false;
+
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/sprite.frag"),
+        SDL_GPU_SHADERSTAGE_FRAGMENT,
+        sprite_frag_info
+      )) return false;
+
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/color.vert"),
+        SDL_GPU_SHADERSTAGE_VERTEX,
+        color_vert_info
+      )) return false;
+
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/color.frag"),
+        SDL_GPU_SHADERSTAGE_FRAGMENT,
+        color_frag_info
+      )) return false;
+
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/composite.vert"),
+        SDL_GPU_SHADERSTAGE_VERTEX,
+        composite_vert_info
+      )) return false;
+
+    if (
+      !shader_manager.loadShader(
+        ResourcePath::resolve("res/shaders/composite.frag"),
+        SDL_GPU_SHADERSTAGE_FRAGMENT,
+        composite_frag_info
+      )) return false;
+
+    return true;
+  }
+
+  bool GPURenderer::createPipelines()
+  {
+    auto& shader_manager = GPUShaderManager::Instance();
+
+    SDL_GPUTextureFormat scene_format = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
+    SDL_GPUTextureFormat swapchain_format = GPUDevice::Instance().getSwapchainFormat();
+
+    const std::string sprite_vert = ResourcePath::resolve("res/shaders/sprite.vert");
+    const std::string sprite_frag = ResourcePath::resolve("res/shaders/sprite.frag");
+    const std::string color_vert = ResourcePath::resolve("res/shaders/color.vert");
+    const std::string color_frag = ResourcePath::resolve("res/shaders/color.frag");
+    const std::string composite_vert = ResourcePath::resolve("res/shaders/composite.vert");
+    const std::string composite_frag = ResourcePath::resolve("res/shaders/composite.frag");
+
+    // Sprite opaque pipeline (renders to scene texture)
+    {
+      auto config = GPUPipeline::createSpriteConfig(
+        shader_manager.getShader(sprite_vert),
+        shader_manager.getShader(sprite_frag),
+        scene_format,
+        false  // opaque
+      );
+
+      if (!sprite_opaque_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "sprite opaque");
+        return false;
+      }
+    }
+
+    // Sprite alpha pipeline (renders to scene texture)
+    {
+      auto config = GPUPipeline::createSpriteConfig(
+        shader_manager.getShader(sprite_vert),
+        shader_manager.getShader(sprite_frag),
+        scene_format,
+        true  // alpha
+      );
+
+      if (!sprite_alpha_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "sprite alpha");
+        return false;
+      }
+    }
+
+    // Primitive pipeline (renders to scene texture, uses color shaders)
+    {
+      auto config = GPUPipeline::createPrimitiveConfig(
+        shader_manager.getShader(color_vert),
+        shader_manager.getShader(color_frag),
+        scene_format
+      );
+
+      if (!primitive_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "primitive");
+        return false;
+      }
+    }
+
+    // Composite pipeline (renders to swapchain)
+    {
+      auto config = GPUPipeline::createCompositeConfig(
+        shader_manager.getShader(composite_vert),
+        shader_manager.getShader(composite_frag),
+        swapchain_format
+      );
+
+      if (!composite_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "composite");
+        return false;
+      }
+    }
+
+    // UI sprite pipeline (renders to swapchain for text/icons)
+    {
+      auto config = GPUPipeline::createSpriteConfig(
+        shader_manager.getShader(sprite_vert),
+        shader_manager.getShader(sprite_frag),
+        swapchain_format,
+        true  // alpha blending for text
+      );
+
+      if (!ui_sprite_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "ui sprite");
+        return false;
+      }
+    }
+
+    // UI primitive pipeline (renders to swapchain for UI backgrounds, uses color shaders)
+    {
+      auto config = GPUPipeline::createPrimitiveConfig(
+        shader_manager.getShader(color_vert),
+        shader_manager.getShader(color_frag),
+        swapchain_format
+      );
+
+      if (!ui_primitive_pipeline_.create(device_, config))
+      {
+        spdlog::error("Failed to create {} pipeline", "ui primitive");
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool GPURenderer::createSceneTexture()
+  {
+    uint32_t scene_width = viewport_width_;
+    uint32_t scene_height = viewport_height_;
+
+    scene_texture_ = std::make_unique<GPUTexture>(
+      device_,
+      scene_width,
+      scene_height,
+      SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM,
+      SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER
+    );
+
+    if (!scene_texture_->isValid())
+    {
+      spdlog::error("Failed to create scene texture {}x{}", scene_width, scene_height);
+      return false;
+    }
+
+    spdlog::debug("Scene texture created: {}x{}", scene_width, scene_height);
+    return true;
+  }
+
+} // namespace Simulacrum

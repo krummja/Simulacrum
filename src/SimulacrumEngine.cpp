@@ -366,54 +366,41 @@ namespace Simulacrum
 
   void SimulacrumEngine::render()
   {
+    auto& gpu_renderer = GPURenderer::Instance();
+
     // Acquires command buffer
     // Acquires swapchain texture
     // Calls `beginFrame()` on all vertex pools
     // Begins the copy pass
-    GPURenderer::Instance().beginFrame();
+    gpu_renderer.beginFrame();
 
-    // ! Must record vertices in here
-    auto& sprite_batch = GPURenderer::Instance().getSpriteBatch();
-    auto& vertex_pool = GPURenderer::Instance().getSpriteVertexPool();
-
-    auto* write_ptr = static_cast<SpriteVertex*>(vertex_pool.getMappedPtr());
-
-    auto* tex = TextureManager::Instance().getGPUTexture("tile_0000");
-
-    sprite_batch.begin(
-      write_ptr,
-      vertex_pool.getMaxVertices(),
-      tex->get(),
-      GPURenderer::Instance().getNearestSampler(),
-      tex->getWidth(),
-      tex->getHeight()
-    );
-
-    sprite_batch.draw(0, 0, 16, 16, 0, 0, 16, 16, 255, 255, 255, 255);
+    float interpolation_alpha = static_cast<float>(timestep_manager_->getInterpolationAlpha());
+    state_manager_->recordGPUVertices(gpu_renderer, interpolation_alpha);
 
     // Calls `endFrame()` on all vertex pools
     // Uploads vertex data to GPU
     // Ends the copy pass
     // Begins the scene render pass
-    auto* scene_pass = GPURenderer::Instance().beginScenePass();
+    auto* scene_pass = gpu_renderer.beginScenePass();
 
-    // ! Should render scene contents in here
-
-    sprite_batch.render(
-      scene_pass,
-      GPURenderer::Instance().getSpriteAlphaPipeline(),
-      vertex_pool.getGPUBuffer()
-    );
+    if (scene_pass)
+    {
+      state_manager_->renderGPUScene(gpu_renderer, scene_pass, interpolation_alpha);
+    }
 
     // Ends the scene render pass
     // Begins the swapchain pass
-    auto* swapchain_pass = GPURenderer::Instance().beginSwapchainPass();
+    auto* swapchain_pass = gpu_renderer.beginSwapchainPass();
 
-    // GPURenderer::Instance().renderComposite(swapchain_pass);
+    if (swapchain_pass)
+    {
+      gpu_renderer.renderComposite(swapchain_pass);
+    }
 
-    sprite_batch.end();
-
-    // ! Should render UI here
+    if (swapchain_pass)
+    {
+      state_manager_->renderGPUUI(gpu_renderer, swapchain_pass);
+    }
   }
 
   void SimulacrumEngine::present()

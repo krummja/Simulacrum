@@ -39,7 +39,7 @@ namespace Simulacrum
     int current_width = engine.getLogicalWidth();
     int current_height = engine.getLogicalHeight();
 
-    image_commands_.clear();
+    draw_commands_.clear();
 
     TextureManager& tex_mgr = TextureManager::Instance();
 
@@ -60,30 +60,21 @@ namespace Simulacrum
         float sw = static_cast<float>(w);
         float sh = static_cast<float>(h);
 
-        // //       x        y         u     v     r    g    b    a
-        // v[0] = { sx,      sy,       0.0f, 0.0f, 255, 255, 255, 255 };
-        // v[1] = { sx + sw, sy,       1.0f, 0.0f, 255, 255, 255, 255 };
-        // v[2] = { sx + sw, sy + sh,  1.0f, 1.0f, 255, 255, 255, 255 };
-        // v[3] = { sx,      sy + sh,  0.0f, 1.0f, 255, 255, 255, 255 };
-
-        // Triangle 1
-        v[0] = { sx,        sy,       0.0f, 0.0f,   255, 255, 255, 255 };
-        v[1] = { sx + sw,   sy,       1.0f, 0.0f,   255, 255, 255, 255 };
-        v[2] = { sx + sw,   sy + sh,  1.0f, 1.0f,   255, 255, 255, 255 };
-        // Triangle 2
-        v[3] = { sx,        sy,       0.0f, 0.0f,   255, 255, 255, 255 };
-        v[4] = { sx + sw,   sy + sh,  1.0f, 1.0f,   255, 255, 255, 255 };
-        v[5] = { sx,        sy + sh,  0.0f, 1.0f,   255, 255, 255, 255 };
+        //       x        y         u     v     r    g    b    a
+        v[0] = { sx,      sy,       0.0f, 0.0f, 255, 255, 255, 255 };
+        v[1] = { sx + sw, sy,       1.0f, 0.0f, 255, 255, 255, 255 };
+        v[2] = { sx + sw, sy + sh,  1.0f, 1.0f, 255, 255, 255, 255 };
+        v[3] = { sx,      sy + sh,  0.0f, 1.0f, 255, 255, 255, 255 };
 
         GPUDrawCommand cmd;
         cmd.texture = tex_data->texture->get();
         cmd.vertex_offset = vertex_offset;
         cmd.vertex_count = 4;
-        image_commands_.push_back(cmd);
+        draw_commands_.push_back(cmd);
         vertex_offset += 4;
       };
 
-    addTexture("tile_0815", 10, 10, 16, 16);
+    addTexture("tile_0815", 0, 0, 16, 16);
 
     vertex_pool.setWrittenVertexCount(vertex_offset);
   }
@@ -93,11 +84,55 @@ namespace Simulacrum
     SDL_GPURenderPass* scene_pass,
     float interpolation_alpha
   )
-  {}
+  {
+    if (draw_commands_.empty())
+    {
+      return;
+    }
+
+    auto* scene_texture = gpu_renderer.getSceneTexture();
+    if (!scene_texture)
+    {
+      return;
+    }
+
+    float ortho_matrix[16];
+    GPURenderer::createOrthoMatrix(
+      0.0f, static_cast<float>(scene_texture->getWidth()),
+      static_cast<float>(scene_texture->getHeight()), 0.0f,
+      ortho_matrix
+    );
+
+    gpu_renderer.pushViewProjection(scene_pass, ortho_matrix);
+
+    SDL_BindGPUGraphicsPipeline(scene_pass, gpu_renderer.getSpriteAlphaPipeline());
+
+    SDL_GPUBufferBinding vertex_binding{};
+    vertex_binding.buffer = gpu_renderer.getSpriteVertexPool().getGPUBuffer();
+    vertex_binding.offset = 0;
+    SDL_BindGPUVertexBuffers(scene_pass, 0, &vertex_binding, 1);
+
+    auto& batch = gpu_renderer.getSpriteBatch();
+    SDL_GPUBufferBinding index_binding{};
+    index_binding.buffer = batch.getIndexBuffer();
+    index_binding.offset = 0;
+    SDL_BindGPUIndexBuffer(scene_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+    for (const auto& cmd : draw_commands_)
+    {
+      SDL_GPUTextureSamplerBinding tex_sampler{};
+      tex_sampler.texture = cmd.texture;
+      tex_sampler.sampler = gpu_renderer.getNearestSampler();
+      SDL_BindGPUFragmentSamplers(scene_pass, 0, &tex_sampler, 1);
+
+      uint32_t first_index = (cmd.vertex_offset / 4) * 6;
+      SDL_DrawGPUIndexedPrimitives(scene_pass, 6, 1, first_index, 0, 0);
+    }
+  }
 
   void LoadingState::renderGPUUI(GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass)
   {
-    if (!swapchain_pass || image_commands_.empty()) return;
+    if (!swapchain_pass || text_draw_commands_.empty()) return;
     float ortho_matrix[16];
 
     GPURenderer::createOrthoMatrix(
@@ -126,7 +161,7 @@ namespace Simulacrum
     SDL_BindGPUIndexBuffer(swapchain_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
     // Draw each texture
-    for (const auto& cmd : image_commands_)
+    for (const auto& cmd : text_draw_commands_)
     {
       SDL_GPUTextureSamplerBinding tex_sampler{};
       tex_sampler.texture = cmd.texture;
@@ -134,7 +169,7 @@ namespace Simulacrum
       SDL_BindGPUFragmentSamplers(swapchain_pass, 0, &tex_sampler, 1);
 
       uint32_t total_vertices = std::accumulate(
-          image_commands_.begin(), image_commands_.end(), 0u,
+          text_draw_commands_.begin(), text_draw_commands_.end(), 0u,
           [](uint32_t sum, const auto& cmd)
           {
             return sum + cmd.vertex_count;
@@ -146,8 +181,8 @@ namespace Simulacrum
           SDL_DrawGPUPrimitives(swapchain_pass, total_vertices, 1, 0, 0);
         }
 
-      // uint32_t first_index = (cmd.vertex_offset / 4) * 6;
-      // SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
+      uint32_t first_index = (cmd.vertex_offset / 4) * 6;
+      SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
     }
   }
 

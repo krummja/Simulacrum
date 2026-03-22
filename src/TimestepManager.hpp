@@ -1,6 +1,8 @@
-#ifndef SIMULACRUM_TIMESTEP_MANAGER_HPP_
-#define SIMULACRUM_TIMESTEP_MANAGER_HPP_
+#pragma once
 
+#include "Macros.hpp"
+
+#include <cstdint>
 #include <chrono>
 #include <SDL3/SDL.h>
 
@@ -32,7 +34,7 @@ namespace Simulacrum
     /// May return true multiple times per frame for catch-up.
     bool shouldUpdate();
 
-    /// @brief Returns true if rendering should be performed, typically once per frame.
+    /// @brief Returns true if rendering should be peformed, typically once per frame.
     bool shouldRender() const;
 
     /// @brief Gets the fixed delta time for updates.
@@ -62,7 +64,7 @@ namespace Simulacrum
     uint32_t getFrameTimeMs() const;
 
     /// @brief Check if the last frame time exceeded target time significantly.
-    /// @return True if frame time was excessive
+    /// @return True if frame tiem was excessive
     bool isFrameTimeExcessive() const;
 
     /// @brief Set new target FPS (updates frame time target).
@@ -113,5 +115,3 @@ namespace Simulacrum
   };
 
 } // namespace Simulacrum
-
-#endif

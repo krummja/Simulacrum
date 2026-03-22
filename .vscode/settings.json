@@ -8,5 +8,14 @@
         "tests",
         "include",
         "res"
-    ]
+    ],
+    "markdown.styles": [
+        "docs\\styles.css"
+    ],
+    "editor.quickSuggestions": {
+        "other": "on",
+        "comments": "off",
+        "strings": "off"
+    },
+    "editor.quickSuggestionsDelay": 10
 }

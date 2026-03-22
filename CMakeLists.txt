@@ -54,19 +54,10 @@ setup_project_dependencies()
 # Executable file configuration
 # ==============================================
 
-file(GLOB_RECURSE SOURCES "src_old/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Create an executable file
-add_executable(${EXECUTABLE_TARGET} ${SOURCES}
-    # src/Main.cpp
-    # src/Engine.cpp
-    # src/GPUDevice.cpp
-    # src/GPURenderer.cpp
-    # src/InputManager.cpp
-    # src/ResourcePath.cpp
-    # src/SettingsManager.cpp
-    # src/TimestepManager.cpp
-)
+add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 
 # Link all dependent libraries
 target_link_libraries(${EXECUTABLE_TARGET}
@@ -78,7 +69,7 @@ target_link_libraries(${EXECUTABLE_TARGET}
 
 target_include_directories(${EXECUTABLE_TARGET}
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/src_old
+        ${PROJECT_SOURCE_DIR}/src
 )
 
 # ==============================================

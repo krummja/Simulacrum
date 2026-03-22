@@ -1,5 +1,4 @@
-#ifndef SIMULACRUM_INPUT_MANAGER_HPP_
-#define SIMULACRUM_INPUT_MANAGER_HPP_
+#pragma once
 
 #include <SDL3/SDL.h>
 #include <utility>
@@ -78,6 +77,4 @@ namespace Simulacrum
     InputManager();
   };
 
-}
-
-#endif
+} // namespace Simulacrum

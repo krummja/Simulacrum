@@ -1,12 +1,13 @@
 #include "ResourcePath.hpp"
-
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <filesystem>
+#include <format>
 
 namespace Simulacrum
 {
+
   namespace fs = std::filesystem;
 
   std::vector<ResourcePath::ResourceSearchPath> ResourcePath::search_paths_;

@@ -1,5 +1,4 @@
-#ifndef SIMULACRUM_GPU_DEVICE_HPP_
-#define SIMULACRUM_GPU_DEVICE_HPP_
+#pragma once
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_video.h>
@@ -34,7 +33,7 @@ namespace Simulacrum
     /// @brief Get the swapchain texture format for the claimed window.
     SDL_GPUTextureFormat getSwapchainFormat() const;
 
-    /// @brief Query if the format is supported with the given usage flags.
+    /// @brief Query if the fomrat is supported with the given usage flags.
     bool supportsFormat(SDL_GPUTextureFormat format, SDL_GPUTextureUsageFlags usage) const;
 
     /// @brief Get the driver name (.e.g "vulkan", "metal", "d3d12").
@@ -57,5 +56,3 @@ namespace Simulacrum
   };
 
 } // namespace Simulacrum
-
-#endif

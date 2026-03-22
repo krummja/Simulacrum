@@ -48,8 +48,8 @@ namespace Simulacrum
       uint32_t vertex_count{0};
     };
 
-    std::vector<GPUDrawCommand> primitive_commands_;
-    std::vector<GPUDrawCommand> image_commands_;
+    std::vector<GPUDrawCommand> draw_commands_;
+    std::vector<GPUDrawCommand> text_draw_commands_;
   };
 
 } // namespace Simulacrum

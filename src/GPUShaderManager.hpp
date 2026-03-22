@@ -1,5 +1,4 @@
-#ifndef SIMULACRUM_GPU_SHADER_MANAGER_HPP_
-#define SIMULACRUM_GPU_SHADER_MANAGER_HPP_
+#pragma once
 
 #include <SDL3/SDL_gpu.h>
 #include <string>
@@ -7,6 +6,7 @@
 
 namespace Simulacrum
 {
+
   /// @brief Shader resource information for creation.
   struct ShaderInfo
   {
@@ -69,6 +69,5 @@ namespace Simulacrum
     SDL_GPUDevice* device_{ nullptr };
     std::unordered_map<std::string, SDL_GPUShader*> shaders_;
   };
-}
 
-#endif
+} // engine::render

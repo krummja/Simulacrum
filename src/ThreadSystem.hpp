@@ -1,6 +1,6 @@
-#ifndef SIMULACRUM_THREAD_SYSTEM_HPP_
-#define SIMULACRUM_THREAD_SYSTEM_HPP_
-
+#pragma once
+#include "Macros.hpp"
+#include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <array>
@@ -434,7 +434,7 @@ namespace Simulacrum
         )
       {
         // Skip this priority level if bitmask indicates it's empty
-        if (!(bitmask & (1 << priority_index)))
+        if (!bitmask & (1 << priority_index))
         {
           continue;
         }
@@ -588,9 +588,9 @@ namespace Simulacrum
       TaskPriority priority = TaskPriority::Normal,
       const std::string& description = "",
       Args&& ...args
-    ) -> std::future<std::invoke_result_t<F, Args...>>
+    ) -> std::future<typename std::invoke_result<F, Args...>::type>
     {
-      using return_type = std::invoke_result_t<F, Args...>;
+      using return_type = typename std::invoke_result<F, Args...>::type;
 
       auto task = std::make_shared<std::packaged_task<return_type()>>(
         std::bind(std::forward<F>(f), std::forward<Args>(args)...)
@@ -614,14 +614,14 @@ namespace Simulacrum
 
     void workerThread(size_t thread_index = 0)
     {
+      std::function<void()> task;
+
       auto start_time = std::chrono::steady_clock::now();
       size_t tasks_processed = 0;
       size_t high_priority_tasks = 0;
 
       try
       {
-        std::function<void()> task;
-
         auto last_task_time = std::chrono::steady_clock::now();
         std::chrono::steady_clock::time_point idle_start_time;
         bool is_idle = false;
@@ -930,11 +930,11 @@ namespace Simulacrum
         TaskPriority priority = TaskPriority::Normal,
         const std::string& description = "",
         Args&& ...args
-      ) -> std::future<std::invoke_result_t<F, Args...>>
+      ) -> std::future<typename std::invoke_result<F, Args...>::type>
     {
       if (is_shutdown_.load(std::memory_order_acquire) || !thread_pool_)
       {
-        using ResultType = std::invoke_result_t<F, Args...>;
+        using ResultType = typename std::invoke_result<F, Args...>::type;
         std::promise<ResultType> promise;
 
         try
@@ -1029,6 +1029,4 @@ namespace Simulacrum
     ThreadSystem() = default;
   };
 
-}
-
-#endif
+} // namespace Simulacrum
