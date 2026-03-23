@@ -136,7 +136,10 @@ namespace Simulacrum
             return px >= x && px < x + width && py >= y && py < y + height;
         }
 
-        SDL_Rect toSDLRect() const { return { x, y, width, height }; }
+        SDL_Rect toSDLRect() const
+        {
+            return { x, y, width, height };
+        }
     };
 
     struct UIStyle
@@ -288,9 +291,7 @@ namespace Simulacrum
         void clean();
         bool isShutdown() const { return is_shutdown_; }
 
-        void applyPositioning(std::shared_ptr<UIComponent> component, int width, int height);
-        const std::vector<std::shared_ptr<UIComponent>>& getSortedComponents() const;
-
+        // Component builders
         void createPanel(const std::string& id, const UIRect& bounds);
         void createProgressBar(const std::string& id, const UIRect& bounds, float min_val = 0.0f, float max_val = 1.0f);
         void createInputField(const std::string& id, const UIRect& bounds, const std::string& placeholder = "");
@@ -324,7 +325,7 @@ namespace Simulacrum
         void bindText(const std::string& id, std::function<std::string()> binding);
         void bindList(const std::string& id, std::function<void(std::vector<std::string>&, std::vector<std::pair<std::string, int>>&)> binding);
         void markBindingDirty(const std::string& id);
-        void markAllBindingsDIrty();
+        void markAllBindingsDirty();
 
         std::string getText(const std::string& id) const;
         float getValue(const std::string& id) const;
@@ -395,8 +396,8 @@ namespace Simulacrum
 
         void removeComponentWithPrefix(const std::string& prefix);
         void resetToDefaultTheme();
-        void cleanupForStateTransition();
 
+        void cleanupForStateTransition();
         void prepareForStateTransition();
 
         void calculateOptimalSize(const std::string& id);
@@ -467,7 +468,7 @@ namespace Simulacrum
         std::string title_font_id_{ UIConstants::FONT_TITLE };
         std::string ui_font_id_{ UIConstants::FONT_UI };
         float global_scale_{ 1.0f };
-        std::string current_theme_mode{ "light" };
+        std::string current_theme_mode_{ "light" };
 
         // Settings
         bool tooltips_enabled_{ true };
@@ -477,6 +478,7 @@ namespace Simulacrum
 
         // Event log state tracking
         std::unordered_map<std::string, EventLogState> event_log_states{};
+
         bool is_shutdown_{ false };
 
         // Window resize tracking for auto-repositioning
@@ -489,7 +491,7 @@ namespace Simulacrum
         bool mouse_released_{ false };
 
         // Performance optimization: Cached sorted components to avoid per-frame allocation + sorting
-        mutable std::vector<std::shared_ptr<UIComponent>> sorted_components_cache{};
+        mutable std::vector<std::shared_ptr<UIComponent>> sorted_components_cache_{};
         mutable bool sorted_components_dirty_{ true };
 
         // Performance optimization: Value caches to avoid hash lookup when values unchanged
@@ -502,12 +504,18 @@ namespace Simulacrum
         std::shared_ptr<UILayout> getLayout(const std::string& id);
 
         // Auto-repositioning system
+        void applyPositioning(std::shared_ptr<UIComponent> component, int width, int height);
+
         void repositionAllComponents(int width, int height);
         void handleInput();
         void updateAnimations(float delta_time);
         void updateTooltips(float delta_time);
         void updateEventLogs(float delta_time);
 
+        // Performance: Return const reference to avoid vector copy every frame
+        const std::vector<std::shared_ptr<UIComponent>>& getSortedComponents() const;
+
+        // Performance optimization helper
         void invalidateComponentCache();
 
         // Layout helpers
@@ -528,9 +536,9 @@ namespace Simulacrum
 
         size_t active_binding_count_{ 0 };
 
-        std::vector<UIGPUDrawCommand> gpu_primitive_commands{};
-        std::vector<UIGPUDrawCommand> gpu_text_commands{};
-        std::vector<UIGPUDrawCommand> gpu_image_commands{};
+        std::vector<UIGPUDrawCommand> gpu_primitive_commands_{};
+        std::vector<UIGPUDrawCommand> gpu_text_commands_{};
+        std::vector<UIGPUDrawCommand> gpu_image_commands_{};
 
         // Delete copy constructor and assignment operator
         // Copy operations

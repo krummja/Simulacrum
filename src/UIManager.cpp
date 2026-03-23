@@ -39,9 +39,9 @@ namespace Simulacrum
 
     global_scale_ = calculateOptimalScale(current_logical_width_, current_logical_height_);
 
-    gpu_primitive_commands.reserve(GPU_PRIMITIVE_COMMAND_CAPACITY);
-    gpu_text_commands.reserve(GPU_TEXT_COMMAND_CAPACITY);
-    gpu_image_commands.reserve(GPU_IMAGE_COMMAND_CAPACITY);
+    gpu_primitive_commands_.reserve(GPU_PRIMITIVE_COMMAND_CAPACITY);
+    gpu_text_commands_.reserve(GPU_TEXT_COMMAND_CAPACITY);
+    gpu_image_commands_.reserve(GPU_IMAGE_COMMAND_CAPACITY);
 
     return true;
   }
@@ -87,20 +87,20 @@ namespace Simulacrum
   {
     if (sorted_components_dirty_)
     {
-      sorted_components_cache.clear();
-      sorted_components_cache.reserve(components_.size());
+      sorted_components_cache_.clear();
+      sorted_components_cache_.reserve(components_.size());
 
       for (const auto& [id, component] : components_)
       {
         if (component)
         {
-          sorted_components_cache.push_back(component);
+          sorted_components_cache_.push_back(component);
         }
       }
 
       std::sort(
-        sorted_components_cache.begin(),
-        sorted_components_cache.end(),
+        sorted_components_cache_.begin(),
+        sorted_components_cache_.end(),
         [](const std::shared_ptr<UIComponent>& a,
           const std::shared_ptr<UIComponent>& b)
         {
@@ -110,7 +110,7 @@ namespace Simulacrum
       sorted_components_dirty_ = false;
     }
 
-    return sorted_components_cache;
+    return sorted_components_cache_;
   }
 
   void UIManager::createPanel(const std::string& id, const UIRect& bounds)
@@ -355,8 +355,8 @@ namespace Simulacrum
 
   void UIManager::recordGPUVertices(GPURenderer& gpu_renderer)
   {
-    gpu_primitive_commands.clear();
-    gpu_text_commands.clear();
+    gpu_primitive_commands_.clear();
+    gpu_text_commands_.clear();
 
     auto& primitive_pool = gpu_renderer.getPrimitiveVertexPool();
     auto& ui_pool = gpu_renderer.getUIVertexPool();
@@ -396,7 +396,7 @@ namespace Simulacrum
         cmd.type = UIGPUDrawCommand::Type::Rect;
         cmd.vertex_offset = primitive_offset;
         cmd.vertex_count = 6;
-        gpu_primitive_commands.push_back(cmd);
+        gpu_primitive_commands_.push_back(cmd);
         primitive_offset += 6;
       };
 
@@ -482,7 +482,7 @@ namespace Simulacrum
         cmd.type = UIGPUDrawCommand::Type::Text;
         cmd.texture = text_data->texture->get();
         cmd.vertex_count = 4;
-        gpu_text_commands.push_back(cmd);
+        gpu_text_commands_.push_back(cmd);
         ui_offset += 4;
       };
 
@@ -583,7 +583,7 @@ namespace Simulacrum
     );
 
     // Render primitives (filled rectangles)
-    if (!gpu_primitive_commands.empty())
+    if (!gpu_primitive_commands_.empty())
     {
       SDL_BindGPUGraphicsPipeline(swapchain_pass, gpu_renderer.getUIPrimitivePipeline());
       gpu_renderer.pushViewProjection(swapchain_pass, ortho_matrix);
@@ -594,7 +594,7 @@ namespace Simulacrum
       SDL_BindGPUVertexBuffers(swapchain_pass, 0, &vertex_binding, 1);
 
       uint32_t total_vertices = std::accumulate(
-        gpu_primitive_commands.begin(), gpu_primitive_commands.end(), 0u,
+        gpu_primitive_commands_.begin(), gpu_primitive_commands_.end(), 0u,
         [](uint32_t sum, const auto& cmd)
         {
           return sum + cmd.vertex_count;
@@ -607,7 +607,7 @@ namespace Simulacrum
       }
     }
 
-    if (!gpu_text_commands.empty())
+    if (!gpu_text_commands_.empty())
     {
       SDL_BindGPUGraphicsPipeline(swapchain_pass, gpu_renderer.getUISpritePipeline());
       gpu_renderer.pushViewProjection(swapchain_pass, ortho_matrix);
@@ -623,7 +623,7 @@ namespace Simulacrum
       index_binding.offset = 0;
       SDL_BindGPUIndexBuffer(swapchain_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-      for (const auto& cmd : gpu_text_commands)
+      for (const auto& cmd : gpu_text_commands_)
       {
         SDL_GPUTextureSamplerBinding tex_sampler{};
         tex_sampler.texture = cmd.texture;
@@ -697,7 +697,7 @@ namespace Simulacrum
   {
     UITheme dark_theme;
     dark_theme.name = "dark";
-    current_theme_mode = "dark";
+    current_theme_mode_ = "dark";
 
     // Button Style
 
