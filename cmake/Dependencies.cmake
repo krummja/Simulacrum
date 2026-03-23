@@ -93,7 +93,7 @@ macro(find_or_fetch_dependency
         set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
         set(BUILD_DOCS OFF CACHE BOOL "" FORCE)
 
-        # SDL_image specific option: Disable format support that may cause build issues
+        # SDL_image specific options: Disable format support that may cause build issues
         if("${DEP_NAME}" STREQUAL "SDL3_image")
             # Disable AVIF format (requires complex toolchains such as NASM and Meson)
             set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
@@ -106,6 +106,11 @@ macro(find_or_fetch_dependency
             # Optional: Disable other formats that may have build issues
             # set(SDLIMAGE_JXL OFF CACHE BOOL "" FORCE)  # JPEG XL
         endif()
+
+        # RmlUi specific options
+        # if("${DEP_NAME}" STREQUAL "RmlUi")
+        #     set(RMLUI_BACKEND )
+        # endif()
 
         # Smart Selection: Prioritize local source code, otherwise get it online
         set(LOCAL_SOURCE_DIR ${CMAKE_SOURCE_DIR}/${LOCAL_PATH})
@@ -203,43 +208,53 @@ function(setup_project_dependencies)
         AUTO  # Use global BUILD_SHARED_LIBS settings
     )
 
-#    # SDL3_image
-#    find_or_fetch_dependency(
-#        SDL3_image
-#        SDL3_image
-#        "https://github.com/libsdl-org/SDL_image.git"
-#        "release-3.2.4"
-#        "external/SDL_image-release-3.2.4"
-#        AUTO
-#    )
-#
-#    # SDL3_mixer
-#    find_or_fetch_dependency(
-#        SDL3_mixer
-#        SDL3_mixer
-#        "https://github.com/libsdl-org/SDL_mixer.git"
-#        "30c1301055a35ee87b8679279b6fc88e10d28fa3"
-#        "external/SDL_mixer-30c1301"
-#        AUTO
-#    )
-#
-#    # SDL3_ttf
-   find_or_fetch_dependency(
-       SDL3_ttf
-       SDL3_ttf
-       "https://github.com/libsdl-org/SDL_ttf.git"
-       "release-3.2.2"
-       "external/SDL_ttf-release-3.2.2"
-       AUTO
-   )
-
-    # luacpp
+    # SDL3_image
     find_or_fetch_dependency(
-        luacpp
-        luacpp
-        "https://github.com/jordanvrtanoski/luacpp"
-        "v0.3.0"
-        "external/luacpp-0.3.0"
+        SDL3_image
+        SDL3_image
+        "https://github.com/libsdl-org/SDL_image.git"
+        "release-3.2.4"
+        "external/SDL_image-release-3.2.4"
+        AUTO
+    )
+
+    # # SDL3_mixer
+    # find_or_fetch_dependency(
+    #     SDL3_mixer
+    #     SDL3_mixer
+    #     "https://github.com/libsdl-org/SDL_mixer.git"
+    #     "30c1301055a35ee87b8679279b6fc88e10d28fa3"
+    #     "external/SDL_mixer-30c1301"
+    #     AUTO
+    # )
+
+    # # luacpp
+    # find_or_fetch_dependency(
+    #     luacpp
+    #     luacpp
+    #     "https://github.com/jordanvrtanoski/luacpp"
+    #     "v0.3.0"
+    #     "external/luacpp-0.3.0"
+    #     AUTO
+    # )
+
+    # SDL3_ttf
+    find_or_fetch_dependency(
+        SDL3_ttf
+        SDL3_ttf
+        "https://github.com/libsdl-org/SDL_ttf.git"
+        "release-3.2.2"
+        "external/SDL_ttf-release-3.2.2"
+        AUTO
+    )
+
+    # RmlUi
+    find_or_fetch_dependency(
+        RmlUi
+        RmlUi
+        "https://github.com/mikke89/RmlUi.git"
+        "6.2"
+        "external/RmlUi-6.2"
         AUTO
     )
 

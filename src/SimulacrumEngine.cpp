@@ -1,6 +1,8 @@
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_video.h"
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_video.h>
+#include <RmlUi/Core.h>
 
+// Simulacrum Dependencies
 #include "SimulacrumEngine.hpp"
 #include "SettingsManager.hpp"
 #include "InputManager.hpp"
@@ -12,7 +14,9 @@
 #include "UIManager.hpp"
 #include "TextureManager.hpp"
 #include "FontManager.hpp"
+#include "RmlUiManager.hpp"
 
+// States
 #include "StateLoading.hpp"
 
 #include <future>
@@ -275,6 +279,26 @@ namespace Simulacrum
     }
 
     spdlog::debug("UI Manager initialized successfully");
+
+    // RmlUi
+    // if (!Rml::Initialise())
+    // {
+    //   spdlog::critical("Failed to initialize RmlUi");
+    //   return false;
+    // }
+
+    // spdlog::debug("RmlUi initialized successfully");
+    // Rml::Context* context = Rml::CreateContext("default", Rml::Vector2i(logical_width_, logical_height_));
+
+    RmlUiManager& rml_manager = RmlUiManager::Instance();
+
+    if (!rml_manager.init(logical_width_, logical_height_))
+    {
+      spdlog::critical("Failed to initialize RmlUi Manager");
+      return false;
+    }
+
+    spdlog::debug("RmlUi Manager initialized successfully");
 
     // Load states
 

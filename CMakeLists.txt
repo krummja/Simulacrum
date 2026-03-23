@@ -51,6 +51,21 @@ include(cmake/CompileShaders.cmake)
 setup_project_dependencies()
 
 # ==============================================
+# RmlUi Configuration
+# ==============================================
+
+set(RMLUI_BACKEND_PATH ${RmlUi_SOURCE_DIR}/Backends)
+add_library(rmlui_backlend_SDL_GPU INTERFACE)
+target_sources(rmlui_backlend_SDL_GPU INTERFACE
+    ${RMLUI_BACKEND_PATH}/RmlUi_Platform_SDL.cpp
+    ${RMLUI_BACKEND_PATH}/RmlUi_Renderer_SDL_GPU.cpp
+)
+target_include_directories(rmlui_backlend_SDL_GPU INTERFACE ${RMLUI_BACKEND_PATH})
+target_compile_definitions(rmlui_backlend_SDL_GPU INTERFACE
+    RMLUI_SDL_VERSION_MAJOR=3
+)
+
+# ==============================================
 # Executable file configuration
 # ==============================================
 
@@ -63,10 +78,12 @@ add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 target_link_libraries(${EXECUTABLE_TARGET}
     SDL3::SDL3
     SDL3_ttf::SDL3_ttf
+    SDL3_image::SDL3_image
     spdlog::spdlog
     glm::glm
     nlohmann_json::nlohmann_json
-    # luacpp::luacpp
+    RmlUi::RmlUi
+    rmlui_backlend_SDL_GPU
 )
 
 target_include_directories(${EXECUTABLE_TARGET}
