@@ -9,6 +9,9 @@
 #include "UIManager.hpp"
 
 #include <format>
+#include <cmath>
+#include <string>
+#include <cstring>
 
 namespace Simulacrum
 {
@@ -20,6 +23,26 @@ namespace Simulacrum
   bool LoadingState::enter()
   {
     spdlog::debug("Entering Loading State");
+    spdlog::debug("{}", SimulacrumEngine::Instance().getWindowWidth());
+
+    auto& ui = UIManager::Instance();
+
+    int left_column_x = 50;
+    int left_column_w = 220;
+    int right_column_x = ui.getLogicalWidth() / 2 + 50;
+    int right_column_w = ui.getLogicalWidth() - right_column_x - 50;
+
+    ui.createLabel(
+      "example_label",
+      {
+        150,
+        ui.getLogicalHeight() - 75,
+        200,
+        30
+      },
+      "Hello world!"
+    );
+
     return true;
   }
 
@@ -35,48 +58,11 @@ namespace Simulacrum
 
   void LoadingState::recordGPUVertices(GPURenderer& gpu_renderer, [[maybe_unused]] float interpolation_alpha)
   {
-    SimulacrumEngine& engine = SimulacrumEngine::Instance();
-    int current_width = engine.getLogicalWidth();
-    int current_height = engine.getLogicalHeight();
-
-    draw_commands_.clear();
-
-    TextureManager& tex_mgr = TextureManager::Instance();
-
-    auto& vertex_pool = gpu_renderer.getSpriteVertexPool();
-    auto* base_ptr = static_cast<SpriteVertex*>(vertex_pool.getMappedPtr());
-    if (!base_ptr) return;
-
-    uint32_t vertex_offset = 0;
-
-    auto addTexture = [&](const char* texture_id, int x, int y, int w, int h)
-      {
-        const TextureData* tex_data = tex_mgr.getGPUTextureData(texture_id);
-        if (!tex_data || !tex_data->texture) return;
-
-        SpriteVertex* v = base_ptr + vertex_offset;
-        float sx = static_cast<float>(x);
-        float sy = static_cast<float>(y);
-        float sw = static_cast<float>(w);
-        float sh = static_cast<float>(h);
-
-        //       x        y         u     v     r    g    b    a
-        v[0] = { sx,      sy,       0.0f, 0.0f, 255, 255, 255, 255 };
-        v[1] = { sx + sw, sy,       1.0f, 0.0f, 255, 255, 255, 255 };
-        v[2] = { sx + sw, sy + sh,  1.0f, 1.0f, 255, 255, 255, 255 };
-        v[3] = { sx,      sy + sh,  0.0f, 1.0f, 255, 255, 255, 255 };
-
-        GPUDrawCommand cmd;
-        cmd.texture = tex_data->texture->get();
-        cmd.vertex_offset = vertex_offset;
-        cmd.vertex_count = 4;
-        draw_commands_.push_back(cmd);
-        vertex_offset += 4;
-      };
-
-    addTexture("tile_0815", 0, 0, 16, 16);
-
-    vertex_pool.setWrittenVertexCount(vertex_offset);
+    auto& ui = UIManager::Instance();
+    if (!ui.isShutdown())
+    {
+      ui.recordGPUVertices(gpu_renderer);
+    }
   }
 
   void LoadingState::renderGPUScene(
@@ -85,104 +71,15 @@ namespace Simulacrum
     float interpolation_alpha
   )
   {
-    if (draw_commands_.empty())
-    {
-      return;
-    }
-
-    auto* scene_texture = gpu_renderer.getSceneTexture();
-    if (!scene_texture)
-    {
-      return;
-    }
-
-    float ortho_matrix[16];
-    GPURenderer::createOrthoMatrix(
-      0.0f, static_cast<float>(scene_texture->getWidth()),
-      static_cast<float>(scene_texture->getHeight()), 0.0f,
-      ortho_matrix
-    );
-
-    gpu_renderer.pushViewProjection(scene_pass, ortho_matrix);
-
-    SDL_BindGPUGraphicsPipeline(scene_pass, gpu_renderer.getSpriteAlphaPipeline());
-
-    SDL_GPUBufferBinding vertex_binding{};
-    vertex_binding.buffer = gpu_renderer.getSpriteVertexPool().getGPUBuffer();
-    vertex_binding.offset = 0;
-    SDL_BindGPUVertexBuffers(scene_pass, 0, &vertex_binding, 1);
-
-    auto& batch = gpu_renderer.getSpriteBatch();
-    SDL_GPUBufferBinding index_binding{};
-    index_binding.buffer = batch.getIndexBuffer();
-    index_binding.offset = 0;
-    SDL_BindGPUIndexBuffer(scene_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-
-    for (const auto& cmd : draw_commands_)
-    {
-      SDL_GPUTextureSamplerBinding tex_sampler{};
-      tex_sampler.texture = cmd.texture;
-      tex_sampler.sampler = gpu_renderer.getNearestSampler();
-      SDL_BindGPUFragmentSamplers(scene_pass, 0, &tex_sampler, 1);
-
-      uint32_t first_index = (cmd.vertex_offset / 4) * 6;
-      SDL_DrawGPUIndexedPrimitives(scene_pass, 6, 1, first_index, 0, 0);
-    }
   }
 
   void LoadingState::renderGPUUI(GPURenderer& gpu_renderer, SDL_GPURenderPass* swapchain_pass)
   {
-    if (!swapchain_pass || text_draw_commands_.empty()) return;
-    float ortho_matrix[16];
+    auto& ui = UIManager::Instance();
 
-    GPURenderer::createOrthoMatrix(
-      0.0f, static_cast<float>(gpu_renderer.getViewportWidth()),
-      static_cast<float>(gpu_renderer.getViewportHeight()), 0.0f,
-      ortho_matrix
-    );
-
-    // Bind UI sprite pipeline
-    SDL_BindGPUGraphicsPipeline(swapchain_pass, gpu_renderer.getUISpritePipeline());
-
-    // Push view-projection matrix
-    gpu_renderer.pushViewProjection(swapchain_pass, ortho_matrix);
-
-    // Bind vertex buffer
-    SDL_GPUBufferBinding vertex_binding{};
-    vertex_binding.buffer = gpu_renderer.getUIVertexPool().getGPUBuffer();
-    vertex_binding.offset = 0;
-    SDL_BindGPUVertexBuffers(swapchain_pass, 0, &vertex_binding, 1);
-
-    // Bind index buffer
-    auto& batch = gpu_renderer.getSpriteBatch();
-    SDL_GPUBufferBinding index_binding{};
-    index_binding.buffer = batch.getIndexBuffer();
-    index_binding.offset = 0;
-    SDL_BindGPUIndexBuffer(swapchain_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-
-    // Draw each texture
-    for (const auto& cmd : text_draw_commands_)
+    if (!ui.isShutdown())
     {
-      SDL_GPUTextureSamplerBinding tex_sampler{};
-      tex_sampler.texture = cmd.texture;
-      tex_sampler.sampler = gpu_renderer.getLinearSampler();
-      SDL_BindGPUFragmentSamplers(swapchain_pass, 0, &tex_sampler, 1);
-
-      uint32_t total_vertices = std::accumulate(
-          text_draw_commands_.begin(), text_draw_commands_.end(), 0u,
-          [](uint32_t sum, const auto& cmd)
-          {
-            return sum + cmd.vertex_count;
-          }
-        );
-
-        if (total_vertices > 0)
-        {
-          SDL_DrawGPUPrimitives(swapchain_pass, total_vertices, 1, 0, 0);
-        }
-
-      uint32_t first_index = (cmd.vertex_offset / 4) * 6;
-      SDL_DrawGPUIndexedPrimitives(swapchain_pass, 6, 1, first_index, 0, 0);
+      ui.renderGPU(gpu_renderer, swapchain_pass);
     }
   }
 

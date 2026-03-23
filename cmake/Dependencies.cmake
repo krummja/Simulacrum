@@ -224,14 +224,24 @@ function(setup_project_dependencies)
 #    )
 #
 #    # SDL3_ttf
-#    find_or_fetch_dependency(
-#        SDL3_ttf
-#        SDL3_ttf
-#        "https://github.com/libsdl-org/SDL_ttf.git"
-#        "release-3.2.2"
-#        "external/SDL_ttf-release-3.2.2"
-#        AUTO
-#    )
+   find_or_fetch_dependency(
+       SDL3_ttf
+       SDL3_ttf
+       "https://github.com/libsdl-org/SDL_ttf.git"
+       "release-3.2.2"
+       "external/SDL_ttf-release-3.2.2"
+       AUTO
+   )
+
+    # luacpp
+    find_or_fetch_dependency(
+        luacpp
+        luacpp
+        "https://github.com/jordanvrtanoski/luacpp"
+        "v0.3.0"
+        "external/luacpp-0.3.0"
+        AUTO
+    )
 
     # GLM
     find_or_fetch_dependency(

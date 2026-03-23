@@ -302,6 +302,7 @@ namespace Simulacrum
         void createEventLog(const std::string& id, const UIRect& bounds, int max_entries = UIConstants::DEFAULT_EVENT_LOG_MAX_ENTRIES);
         void createDialog(const std::string& id, const UIRect& bounds);
         void createModal(const std::string& dialog_id, const UIRect& bounds, const std::string& theme, int window_width, int window_height);
+        void createLabel(const std::string& id, const UIRect& bounds, const std::string& text = "");
 
         void refreshAllComponentThemes() const;
 
@@ -432,7 +433,7 @@ namespace Simulacrum
             };
         }
 
-        float calculateOptimalScale(int width, int height);
+        float calculateOptimalScale(int width, int height) const;
         void enableTooltips(bool enable) { tooltips_enabled_ = enable; }
         void setTooltipDelay(float delay) { tooltip_delay_ = delay; }
 
@@ -442,6 +443,8 @@ namespace Simulacrum
 
         void recordGPUVertices(GPURenderer& gpu_renderer);
         void renderGPU(GPURenderer& gpu_renderer, SDL_GPURenderPass* pass);
+
+        void onWindowResize(int logical_width, int logical_height);
 
     private:
 

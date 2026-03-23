@@ -9,6 +9,8 @@
 #include "GpuRenderer.hpp"
 #include "ResourcePath.hpp"
 #include "ThreadSystem.hpp"
+#include "ScriptManager.hpp"
+#include "UIManager.hpp"
 
 #include <cstdlib>
 #include <format>
@@ -75,6 +77,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     engine.clean();
     return -1;
   }
+
+  Simulacrum::UIManager::Instance().prepareForStateTransition();
 
   engine.getStateManager()->pushState("Loading State");
 

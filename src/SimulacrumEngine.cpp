@@ -11,6 +11,7 @@
 #include "StateManager.hpp"
 #include "UIManager.hpp"
 #include "TextureManager.hpp"
+#include "FontManager.hpp"
 
 #include "StateLoading.hpp"
 
@@ -173,8 +174,8 @@ namespace Simulacrum
     // Store actual dimensions for UI positioning
     int const actual_width = pixel_width;
     int const actual_height = pixel_height;
-    logical_width = actual_width;
-    logical_height = actual_height;
+    logical_width_ = actual_width;
+    logical_height_ = actual_height;
 
     spdlog::info("Using native resolution: {}x{}", actual_width, actual_height);
 
@@ -225,7 +226,31 @@ namespace Simulacrum
 
     // TODO Sound Manager
 
-    // TODO Font Manager
+    const std::string fonts_path = ResourcePath::resolve("res/fonts");
+    init_tasks.push_back(
+      ThreadSystem::Instance().enqueueTaskWithResult(
+        [this, fonts_path]() -> bool {
+          spdlog::info("Creating Font Manager");
+          FontManager& font_manager = FontManager::Instance();
+
+          if (!font_manager.init())
+          {
+            spdlog::critical("Failed to initialize Font Manager");
+            return false;
+          }
+
+          spdlog::info("Loading fonts with display-aware sizing");
+
+          if (!font_manager.loadFontsForDisplay(fonts_path, window_width_, window_height_, dpi_scale_))
+          {
+            spdlog::critical("Failed to load fonts for display");
+            return false;
+          }
+
+          return true;
+        }
+      )
+    );
 
     // TODO Save Game Manager
 
@@ -436,6 +461,9 @@ namespace Simulacrum
 
     spdlog::info("Starting shutdown sequence...");
 
+    spdlog::info("Cleaning up Font Manager...");
+    FontManager::Instance().clean();
+
     spdlog::info("Cleaning up UI Manager...");
     UIManager::Instance().clean();
 
@@ -552,7 +580,16 @@ namespace Simulacrum
 
   void SimulacrumEngine::onDisplayChange(const SDL_Event& event)
   {
-    // TODO
+    UIManager& ui_manager = UIManager::Instance();
+    ui_manager.setGlobalScale(1.0f);
+
+    ui_manager.cleanupForStateTransition();
+
+    FontManager& font_manager = FontManager::Instance();
+    const std::string fonts_path_display = ResourcePath::resolve("res/fonts");
+    font_manager.reloadFontsForDisplay(fonts_path_display, window_width_, window_height_, dpi_scale_);
+
+    ui_manager.onWindowResize(getLogicalWidth(), getLogicalHeight());
   }
 
 } // namespace Simulacrum

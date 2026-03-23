@@ -62,9 +62,11 @@ add_executable(${EXECUTABLE_TARGET} ${SOURCES})
 # Link all dependent libraries
 target_link_libraries(${EXECUTABLE_TARGET}
     SDL3::SDL3
+    SDL3_ttf::SDL3_ttf
     spdlog::spdlog
     glm::glm
     nlohmann_json::nlohmann_json
+    # luacpp::luacpp
 )
 
 target_include_directories(${EXECUTABLE_TARGET}
